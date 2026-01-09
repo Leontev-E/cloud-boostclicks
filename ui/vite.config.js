@@ -4,7 +4,7 @@ import suidPlugin from '@suid/vite-plugin'
 
 export default defineConfig({
 	plugins: [suidPlugin(), solidPlugin()],
-	base: './',
+	base: '/',
 	server: {
 		port: 3000,
 	},
