@@ -32,7 +32,7 @@ const StorageCreateForm = () => {
 
 		await API.storages.createStorage(name, chatId)
 
-		addAlert(`Created storage "${name}"`, 'success')
+		addAlert(`Облако "${name}" создано`, 'success')
 
 		navigate('/storages')
 	}
@@ -48,9 +48,9 @@ const StorageCreateForm = () => {
 		let err = null
 
 		if (value > 0) {
-			err = 'Chat id must be a valid negative integer'
+			err = 'ID канала должен быть отрицательным числом'
 		} else if (value === '') {
-			err = 'Chat id is required and must be a valid negative integer'
+			err = 'ID канала обязателен и должен быть отрицательным числом'
 		}
 
 		setChatIdErr(err)
@@ -64,7 +64,7 @@ const StorageCreateForm = () => {
 					variant="outlined"
 					startIcon={<ChevronLeftIcon />}
 				>
-					Back
+					Назад
 				</Button>
 			</Box>
 
@@ -82,9 +82,9 @@ const StorageCreateForm = () => {
 				}}
 			>
 				<Typography variant="h5">
-					Register new storage
+					Создать облако
 					<a
-						href="https://github.com/Dominux/Pentaract/wiki/Creating-storages"
+						href="https://boostclicks.ru"
 						target="_blank"
 					>
 						<IconButton color="warning" sx={{ py: 0 }}>
@@ -96,17 +96,17 @@ const StorageCreateForm = () => {
 				<TextField
 					id="name"
 					name="name"
-					label="Name"
-					variant="standard"
+					label="Название облака"
+					variant="outlined"
 					fullWidth
 					required
 				/>
 				<TextField
 					id="chat_id"
 					name="chat_id"
-					label="Chat id"
+					label="ID Telegram-канала"
 					type="number"
-					variant="standard"
+					variant="outlined"
 					onChange={validateChatId}
 					helperText={chatIdErr}
 					error={typeof chatIdErr() === 'string'}
@@ -114,7 +114,7 @@ const StorageCreateForm = () => {
 					required
 				/>
 				<Button type="submit" variant="contained" color="secondary">
-					Register
+					Создать облако
 				</Button>
 			</Box>
 		</Stack>

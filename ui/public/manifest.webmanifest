@@ -1,0 +1,17 @@
+﻿{
+  "name": "cloud.boostclicks",
+  "short_name": "boostclicks",
+  "start_url": "/",
+  "display": "standalone",
+  "background_color": "#f7f1e8",
+  "theme_color": "#f6a04d",
+  "lang": "ru",
+  "description": "Облачное хранилище поверх Telegram.",
+  "icons": [
+    {
+      "src": "/app-icon.svg",
+      "sizes": "any",
+      "type": "image/svg+xml"
+    }
+  ]
+}

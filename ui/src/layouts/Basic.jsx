@@ -22,7 +22,7 @@ const BasicLayout = () => {
 				<Box sx={{ display: 'flex' }}>
 					<SideBar></SideBar>
 
-					<Container sx={{ pt: 4 }}>
+					<Container maxWidth="lg" sx={{ pt: { xs: 3, md: 5 }, pb: 6 }}>
 						<Outlet />
 					</Container>
 				</Box>

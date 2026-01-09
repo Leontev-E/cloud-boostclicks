@@ -1,18 +1,21 @@
 version: "3.9"
 
 volumes:
-  pentaract-db-volume:
-    name: pentaract-db-volume
+  cloud-boostclicks-db-volume:
+    name: cloud-boostclicks-db-volume
 
 networks:
-  pentaract-network:
-    name: pentaract-network
+  cloud-boostclicks-network:
+    name: cloud-boostclicks-network
 
 services:
-  pentaract:
-    container_name: pentaract
-    image: pentaract
-    build: .
+  cloud-boostclicks:
+    container_name: cloud-boostclicks
+    image: cloud-boostclicks
+    build:
+      context: .
+      args:
+        VITE_TELEGRAM_LOGIN_BOT_USERNAME: ${VITE_TELEGRAM_LOGIN_BOT_USERNAME}
     env_file:
       - .env
     ports:
@@ -21,10 +24,10 @@ services:
     depends_on:
       - db
     networks:
-      - pentaract-network
+      - cloud-boostclicks-network
 
   db:
-    container_name: pentaract_db
+    container_name: cloud-boostclicks-db
     image: postgres:15.0-alpine
     environment:
       POSTGRES_USER: ${DATABASE_USER}
@@ -36,6 +39,6 @@ services:
       timeout: 5s
       retries: 10
     volumes:
-      - pentaract-db-volume:/var/lib/postgresql/data
+      - cloud-boostclicks-db-volume:/var/lib/postgresql/data
     networks:
-      - pentaract-network
+      - cloud-boostclicks-network

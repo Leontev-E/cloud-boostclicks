@@ -110,28 +110,28 @@ const FSListItem = (props) => {
 					<ListItemIcon>
 						<InfoIcon fontSize="small" />
 					</ListItemIcon>
-					<ListItemText>Info</ListItemText>
+					<ListItemText>Информация</ListItemText>
 				</MenuItem>
 
 				<MenuItem onClick={download} disabled={!props.fsElement.is_file}>
 					<ListItemIcon>
 						<DownloadIcon fontSize="small" />
 					</ListItemIcon>
-					<ListItemText>Download</ListItemText>
+					<ListItemText>Скачать</ListItemText>
 				</MenuItem>
 
 				<MenuItem onClick={openActionConfirmDialog}>
 					<ListItemIcon>
 						<DeleteIcon fontSize="small" />
 					</ListItemIcon>
-					<ListItemText>Delete</ListItemText>
+					<ListItemText>Удалить</ListItemText>
 				</MenuItem>
 			</MenuMUI>
 
 			<ActionConfirmDialog
-				action="Delete"
-				entity="file"
-				actionDescription={`delete file ${props.fsElement.name}`}
+				action="Удалить"
+				entity="файл"
+				actionDescription={`удалить файл ${props.fsElement.name}`}
 				isOpened={isActionConfirmDialogOpened()}
 				onConfirm={deleteFile}
 				onCancel={closeActionConfirmDialog}

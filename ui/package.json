@@ -1,24 +1,33 @@
 {
-  "name": "vite-template-solid",
-  "version": "0.0.0",
-  "description": "",
+  "name": "cloud-boostclicks-ui",
+  "version": "1.0.0",
+  "description": "cloud.boostclicks UI",
   "scripts": {
     "start": "vite",
     "dev": "vite",
     "build": "vite build",
-    "serve": "vite preview"
+    "serve": "vite preview",
+    "cap:sync": "cap sync",
+    "cap:add:android": "cap add android",
+    "cap:add:ios": "cap add ios",
+    "cap:open:android": "cap open android",
+    "cap:open:ios": "cap open ios"
   },
   "license": "MIT",
-  "devDependencies": {
-    "solid-devtools": "^0.27.3",
-    "vite": "^4.3.9",
-    "vite-plugin-solid": "^2.7.0"
-  },
   "dependencies": {
     "@solidjs/router": "^0.9.1",
     "@suid/icons-material": "^0.6.11",
     "@suid/material": "^0.15.1",
     "@suid/vite-plugin": "^0.1.5",
+    "@capacitor/core": "^6.0.0",
     "solid-js": "^1.8.4"
+  },
+  "devDependencies": {
+    "@capacitor/android": "^6.0.0",
+    "@capacitor/cli": "^6.0.0",
+    "@capacitor/ios": "^6.0.0",
+    "solid-devtools": "^0.27.3",
+    "vite": "^4.3.9",
+    "vite-plugin-solid": "^2.7.0"
   }
 }

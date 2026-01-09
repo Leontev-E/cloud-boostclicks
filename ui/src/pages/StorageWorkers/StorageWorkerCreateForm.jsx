@@ -45,7 +45,7 @@ const StorageWorkerCreateForm = () => {
 
 		await API.storageWorkers.createStorageWorker(name, token, storageId)
 
-		addAlert(`Created storage worker "${name}"`, 'success')
+		addAlert(`Бот "${name}" добавлен`, 'success')
 
 		navigate('/storage_workers')
 	}
@@ -58,7 +58,7 @@ const StorageWorkerCreateForm = () => {
 					variant="outlined"
 					startIcon={<ChevronLeftIcon />}
 				>
-					Back
+					Назад
 				</Button>
 			</Box>
 
@@ -68,7 +68,7 @@ const StorageWorkerCreateForm = () => {
 				sx={{
 					py: 2,
 					mx: 'auto',
-					maxWidth: 400,
+					maxWidth: 420,
 					display: 'flex',
 					flexDirection: 'column',
 					alignItems: 'center',
@@ -76,9 +76,9 @@ const StorageWorkerCreateForm = () => {
 				}}
 			>
 				<Typography variant="h5">
-					Register new storage worker
+					Добавить токен бота
 					<a
-						href="https://github.com/Dominux/Pentaract/wiki/Creating-storage-workers"
+						href="https://boostclicks.ru"
 						target="_blank"
 					>
 						<IconButton color="warning" sx={{ py: 0 }}>
@@ -90,8 +90,8 @@ const StorageWorkerCreateForm = () => {
 				<TextField
 					id="name"
 					name="name"
-					label="Name"
-					variant="standard"
+					label="Название бота"
+					variant="outlined"
 					fullWidth
 					required
 				/>
@@ -99,17 +99,17 @@ const StorageWorkerCreateForm = () => {
 				<TextField
 					id="token"
 					name="token"
-					label="Token"
-					variant="standard"
+					label="Токен бота"
+					variant="outlined"
 					fullWidth
 					required
 				/>
 
-				<FormControl fullWidth variant="standard" required>
-					<InputLabel id="storage-select-label">Storage</InputLabel>
+				<FormControl fullWidth variant="outlined" required>
+					<InputLabel id="storage-select-label">Облако</InputLabel>
 					<Select
 						labelId="storage-select-label"
-						label="Storage"
+						label="Облако"
 						name="storage_id"
 					>
 						{mapArray(storages, (storage) => (
@@ -119,7 +119,7 @@ const StorageWorkerCreateForm = () => {
 				</FormControl>
 
 				<Button type="submit" variant="contained" color="secondary">
-					Register
+					Сохранить
 				</Button>
 			</Box>
 		</Stack>

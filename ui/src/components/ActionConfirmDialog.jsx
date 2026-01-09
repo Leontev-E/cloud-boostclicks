@@ -27,16 +27,16 @@ const ActionConfirmDialog = (props) => {
 			</DialogTitle>
 			<DialogContent>
 				<DialogContentText>
-					Are you sure you want to {props.actionDescription}?
+					Вы уверены, что хотите {props.actionDescription}?
 				</DialogContentText>
 			</DialogContent>
 
 			<DialogActions>
 				<Button onClick={props.onConfirm} color="warning">
-					Confirm
+					Подтвердить
 				</Button>
 				<Button onClick={props.onCancel} color="info">
-					Cancel
+					Отмена
 				</Button>
 			</DialogActions>
 		</Dialog>

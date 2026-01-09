@@ -6,6 +6,8 @@ import Button from '@suid/material/Button'
 import Paper from '@suid/material/Paper'
 import Typography from '@suid/material/Typography'
 import Divider from '@suid/material/Divider'
+import Stack from '@suid/material/Stack'
+import Alert from '@suid/material/Alert'
 import createLocalStore from '../../libs'
 import { A, useNavigate } from '@solidjs/router'
 
@@ -33,63 +35,56 @@ const Register = () => {
 		const email = data.get('email')
 		const password = data.get('password')
 
-		// Registerting
 		await API.users.register(email, password)
+		addAlert('Регистрация прошла успешно')
 
-		addAlert('You registered successfully')
-
-		// Authenticating
 		const tokenData = await API.auth.login(email, password)
 
 		setStore('access_token', tokenData.access_token)
+		setStore('user', { identifier: email })
 
 		const redirect_url = store.redirect || '/'
 		navigate(redirect_url)
 	}
 
 	return (
-		<Container maxWidth="sm" sx={{ width: 'fit-content' }}>
-			<Paper sx={{ mt: '20vh' }} elevation={4}>
-				<Box
-					component="form"
-					onSubmit={handleSubmit}
-					sx={{
-						px: 5,
-						py: 2,
-						display: 'flex',
-						flexDirection: 'column',
-						alignItems: 'center',
-						'& > :not(style)': { my: 1.5 },
-					}}
-				>
-					<Typography variant="h5">Registering in Pentaract</Typography>
-					<Divider />
-					<TextField
-						name="email"
-						label="email"
-						type="email"
-						variant="standard"
-						required
-					/>
-					<TextField
-						name="password"
-						label="Password"
-						variant="standard"
-						type="password"
-						required
-					/>
-					<Divider />
-					<Button type="submit" variant="contained" color="secondary">
-						Register
-					</Button>
-
-					<Divider />
-
-					<A class="default-link" href="/login">
-						Already have an account? Login!
-					</A>
+		<Container maxWidth="sm" sx={{ py: { xs: 6, md: 10 } }}>
+			<Paper sx={{ p: { xs: 3, md: 4 } }} elevation={6}>
+				<Stack spacing={2}>
+				<Typography variant="h5">Создать админ-аккаунт</Typography>
+				<Alert severity="info">
+					Для пользователей по умолчанию используется вход через Telegram.
+					Создайте админскую почту только как резервный доступ.
+				</Alert>
+				<Divider />
+				<Box component="form" onSubmit={handleSubmit}>
+					<Stack spacing={2}>
+						<TextField
+							name="email"
+							label="Электронная почта"
+							type="email"
+							variant="outlined"
+							required
+							fullWidth
+						/>
+						<TextField
+							name="password"
+							label="Пароль"
+							variant="outlined"
+							type="password"
+							required
+							fullWidth
+						/>
+						<Button type="submit" variant="contained" color="primary">
+							Зарегистрировать администратора
+						</Button>
+					</Stack>
 				</Box>
-			</Paper>
+				<A class="default-link" href="/login">
+					Уже есть доступ? Войти.
+				</A>
+			</Stack>
+		</Paper>
 		</Container>
 	)
 }

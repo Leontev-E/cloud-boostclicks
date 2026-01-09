@@ -2,13 +2,8 @@ import Typography from '@suid/material/Typography'
 import Grid from '@suid/material/Grid'
 import Stack from '@suid/material/Stack'
 import Paper from '@suid/material/Paper'
-import Table from '@suid/material/Table'
-import TableBody from '@suid/material/TableBody'
-import TableCell from '@suid/material/TableCell'
-import TableContainer from '@suid/material/TableContainer'
-import TableHead from '@suid/material/TableHead'
-import TableRow from '@suid/material/TableRow'
 import Button from '@suid/material/Button'
+import Box from '@suid/material/Box'
 import { Show, createSignal, mapArray, onMount } from 'solid-js'
 import { useNavigate } from '@solidjs/router'
 
@@ -28,59 +23,70 @@ const Storages = () => {
 	})
 
 	return (
-		<Stack container>
-			<Grid container sx={{ mb: 2 }}>
-				<Grid item xs={6}>
-					<Typography variant="h4">Storages</Typography>
-				</Grid>
-				<Grid item xs={6} sx={{ display: 'flex', justifyContent: 'flex-end' }}>
-					<Button
-						onClick={() => navigate('/storages/register')}
-						variant="contained"
-						color="secondary"
-					>
-						Register new
-					</Button>
-				</Grid>
-			</Grid>
+		<Stack spacing={3}>
+			<Stack
+				direction={{ xs: 'column', sm: 'row' }}
+				justifyContent="space-between"
+				alignItems={{ xs: 'flex-start', sm: 'center' }}
+				spacing={2}
+			>
+				<Box>
+					<Typography variant="h4">Облака</Typography>
+					<Typography variant="body2" color="text.secondary">
+						Каждое облако привязано к Telegram-каналу.
+					</Typography>
+				</Box>
+				<Button
+					onClick={() => navigate('/storages/register')}
+					variant="contained"
+					color="secondary"
+				>
+					Создать облако
+				</Button>
+			</Stack>
 
-			<Grid>
-				<TableContainer component={Paper}>
-					<Table sx={{ minWidth: 650 }}>
-						<Show
-							when={storages().length}
-							fallback={<div>There's no storages yet</div>}
-						>
-							<TableHead>
-								<TableRow>
-									<TableCell>Name</TableCell>
-									<TableCell>Chat ID</TableCell>
-									<TableCell>Size</TableCell>
-									<TableCell>Files</TableCell>
-								</TableRow>
-							</TableHead>
-							<TableBody>
-								{mapArray(storages, (storage) => (
-									<TableRow
-										onClick={() => navigate(`/storages/${storage.id}/files`)}
-										sx={{
-											cursor: 'pointer',
-											'&:last-child td, &:last-child th': { border: 0 },
-										}}
-									>
-										<TableCell component="th" scope="row">
-											{storage.name}
-										</TableCell>
-										<TableCell>{storage.chat_id}</TableCell>
-										<TableCell>{convertSize(storage.size)}</TableCell>
-										<TableCell>{storage.files_amount}</TableCell>
-									</TableRow>
-								))}
-							</TableBody>
-						</Show>
-					</Table>
-				</TableContainer>
-			</Grid>
+			<Show
+				when={storages().length}
+				fallback={
+					<Paper sx={{ p: 4, textAlign: 'center' }}>
+						<Typography variant="h6">Облаков пока нет</Typography>
+						<Typography variant="body2" color="text.secondary">
+							Создайте первое облако и подключите Telegram-канал.
+						</Typography>
+					</Paper>
+				}
+			>
+				<Grid container spacing={2}>
+					{mapArray(storages, (storage) => (
+						<Grid item xs={12} md={6} lg={4}>
+							<Paper
+								sx={{
+									p: 3,
+									cursor: 'pointer',
+									transition: 'transform 0.2s ease',
+									'&:hover': { transform: 'translateY(-4px)' },
+								}}
+								onClick={() => navigate(`/storages/${storage.id}/files`)}
+							>
+								<Stack spacing={1}>
+									<Typography variant="h6">{storage.name}</Typography>
+									<Typography variant="body2" color="text.secondary">
+										ID канала: {storage.chat_id}
+									</Typography>
+									<Stack direction="row" spacing={2}>
+										<Typography variant="body2">
+											Размер: {convertSize(storage.size)}
+										</Typography>
+										<Typography variant="body2">
+											Файлов: {storage.files_amount}
+										</Typography>
+									</Stack>
+								</Stack>
+							</Paper>
+						</Grid>
+					))}
+				</Grid>
+			</Show>
 		</Stack>
 	)
 }

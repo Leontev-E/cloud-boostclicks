@@ -12,7 +12,7 @@ import SmartToyIcon from '@suid/icons-material/SmartToyOutlined'
 
 import SideBarItem from './SideBarItem'
 
-const initOpen = window.innerWidth > 840
+const initOpen = window.innerWidth > 1024
 
 const SideBar = () => {
 	const [open, setOpen] = createSignal(initOpen)
@@ -49,14 +49,10 @@ const SideBar = () => {
 			</List>
 			<Divider />
 			<List>
-				<SideBarItem text="Storages" link="/storages" isFull={open()}>
+				<SideBarItem text="Облака" link="/storages" isFull={open()}>
 					<StorageIcon />
 				</SideBarItem>
-				<SideBarItem
-					text="Storage workers"
-					link="/storage_workers"
-					isFull={open()}
-				>
+				<SideBarItem text="Боты" link="/storage_workers" isFull={open()}>
 					<SmartToyIcon />
 				</SideBarItem>
 			</List>

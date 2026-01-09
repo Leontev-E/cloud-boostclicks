@@ -22,11 +22,13 @@ const FileInfoDialog = (props) => {
 	return (
 		<>
 			<Dialog open={props.isOpened} onClose={props.onClose}>
-				<DialogTitle sx={{ textAlign: 'center' }}>File info</DialogTitle>
+				<DialogTitle sx={{ textAlign: 'center' }}>
+					Информация о файле
+				</DialogTitle>
 				<DialogContent>
 					<Grid container spacing={4}>
 						<Grid item>
-							<Typography fontStyle="italic">Size</Typography>
+							<Typography fontStyle="italic">Размер</Typography>
 						</Grid>
 						<Grid item>{convertSize(props.file.size)}</Grid>
 					</Grid>

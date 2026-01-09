@@ -29,7 +29,7 @@ import { alertStore } from './AlertStack'
 const GrantAccess = (props) => {
 	const { addAlert } = alertStore
 	const params = useParams()
-	const getAction = () => (props.email?.length ? 'Change' : 'Grant')
+	const getAction = () => (props.email?.length ? 'Изменить' : 'Выдать')
 
 	/**
 	 *
@@ -46,9 +46,9 @@ const GrantAccess = (props) => {
 
 		props.onClose()
 		addAlert(
-			`Granted "${makeAccessTypeUserFriendly(
+			`Права "${makeAccessTypeUserFriendly(
 				access_type
-			)}" access to the user with email "${email}"`,
+			)}" выданы для "${email}"`,
 			'success'
 		)
 
@@ -59,7 +59,7 @@ const GrantAccess = (props) => {
 		<>
 			<Dialog open={props.isVisible} onClose={props.onClose}>
 				<form onSubmit={onGrant}>
-					<DialogTitle>{getAction} access</DialogTitle>
+					<DialogTitle>{getAction()} доступ</DialogTitle>
 					<DialogContent>
 						<TextField
 							required
@@ -67,19 +67,19 @@ const GrantAccess = (props) => {
 							disabled={props.email}
 							margin="normal"
 							id="email"
-							label="User's email"
-							type="email"
+							label="Юзернейм или почта"
+							type="text"
 							name="email"
 							fullWidth
-							variant="standard"
+							variant="outlined"
 						/>
 
-						<FormControl fullWidth>
-							<InputLabel id="email-select-label">Access Type</InputLabel>
+						<FormControl fullWidth variant="outlined">
+							<InputLabel id="email-select-label">Права доступа</InputLabel>
 							<Select
-								variant="standard"
+								variant="outlined"
 								labelId="email-select-label"
-								label="Access Type"
+								label="Права доступа"
 								name="access_type"
 							>
 								{['R', 'W', 'A'].map((at) => (
@@ -92,11 +92,11 @@ const GrantAccess = (props) => {
 					</DialogContent>
 					<DialogActions>
 						<Button type="submit" color="success">
-							{getAction}
+							{getAction()}
 						</Button>
 
 						<Button onClick={props.onClose} color="error">
-							Cancel
+							Отмена
 						</Button>
 					</DialogActions>
 				</form>

@@ -15,11 +15,86 @@ import NotFound from './pages/404'
 
 const theme = createTheme({
 	palette: {
+		mode: 'light',
 		primary: {
-			main: '#0D1821',
+			main: '#2c5f5d',
+			contrastText: '#ffffff',
 		},
 		secondary: {
-			main: '#F9E900',
+			main: '#f6a04d',
+			contrastText: '#1b1a17',
+		},
+		background: {
+			default: '#f7f1e8',
+			paper: '#ffffff',
+		},
+		text: {
+			primary: '#1b1a17',
+			secondary: '#5f5a52',
+		},
+	},
+	shape: {
+		borderRadius: 18,
+	},
+	typography: {
+		fontFamily: '"IBM Plex Sans", "Segoe UI", sans-serif',
+		h1: { fontFamily: '"Space Grotesk", "Segoe UI", sans-serif' },
+		h2: { fontFamily: '"Space Grotesk", "Segoe UI", sans-serif' },
+		h3: { fontFamily: '"Space Grotesk", "Segoe UI", sans-serif' },
+		h4: { fontFamily: '"Space Grotesk", "Segoe UI", sans-serif' },
+		h5: { fontFamily: '"Space Grotesk", "Segoe UI", sans-serif' },
+		h6: { fontFamily: '"Space Grotesk", "Segoe UI", sans-serif' },
+	},
+	components: {
+		MuiAppBar: {
+			styleOverrides: {
+				root: {
+					backgroundColor: 'rgba(255,255,255,0.86)',
+					color: '#1b1a17',
+					backdropFilter: 'blur(16px)',
+					borderBottom: '1px solid rgba(27,26,23,0.08)',
+				},
+			},
+		},
+		MuiPaper: {
+			styleOverrides: {
+				root: {
+					border: '1px solid rgba(27,26,23,0.08)',
+					boxShadow: '0 24px 60px rgba(27,26,23,0.12)',
+				},
+			},
+		},
+		MuiButton: {
+			styleOverrides: {
+				root: {
+					textTransform: 'none',
+					borderRadius: 14,
+					fontWeight: 600,
+				},
+			},
+		},
+		MuiDrawer: {
+			styleOverrides: {
+				paper: {
+					backgroundColor: 'rgba(255,255,255,0.88)',
+					backdropFilter: 'blur(16px)',
+					borderRight: '1px solid rgba(27,26,23,0.08)',
+				},
+			},
+		},
+		MuiChip: {
+			styleOverrides: {
+				root: {
+					fontWeight: 600,
+				},
+			},
+		},
+		MuiTableCell: {
+			styleOverrides: {
+				head: {
+					fontWeight: 600,
+				},
+			},
 		},
 	},
 })

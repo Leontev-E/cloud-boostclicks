@@ -32,7 +32,7 @@ import GrantAccess from './GrantAccess'
  * @param {AccessProps} props
  */
 const Access = (props) => {
-	const [selectedUserEmail, setSelectedUserEmail] = createSignal()
+	const [selectedUserIdentifier, setSelectedUserIdentifier] = createSignal()
 	const [isRestrictConfirmOpened, setIsRestrictConfirmOpened] =
 		createSignal(false)
 	const [isChangeAccessOpened, setIsChangeAccessOpened] = createSignal(false)
@@ -42,8 +42,8 @@ const Access = (props) => {
 
 	onMount(props.onMount)
 
-	const onEditButtonClicked = (email) => {
-		setSelectedUserEmail(email)
+	const onEditButtonClicked = (identifier) => {
+		setSelectedUserIdentifier(identifier)
 		setIsChangeAccessOpened(true)
 	}
 
@@ -52,19 +52,18 @@ const Access = (props) => {
 		await props.refetchUsers()
 	}
 
-	const onDeleteButtonClicked = (email) => {
-		setSelectedUserEmail(email)
+	const onDeleteButtonClicked = (identifier) => {
+		setSelectedUserIdentifier(identifier)
 		setIsRestrictConfirmOpened(true)
 	}
 
 	const onRestrict = async () => {
-		const userID = props.users.find((u) => u.email === selectedUserEmail()).id
+		const userID = props.users.find(
+			(u) => u.email === selectedUserIdentifier()
+		).id
 
 		await API.access.restrictAccess(params.id, userID)
-		addAlert(
-			`Restricted access for the user with email ${selectedUserEmail()}`,
-			'success'
-		)
+		addAlert(`Доступ для ${selectedUserIdentifier()} ограничен`, 'success')
 
 		await props.refetchUsers()
 	}
@@ -76,12 +75,12 @@ const Access = (props) => {
 					<Table sx={{ minWidth: 650 }}>
 						<Show
 							when={props.users.length}
-							fallback={<div>There's no users with access yet</div>}
+							fallback={<div>Пока нет пользователей с доступом</div>}
 						>
 							<TableHead>
 								<TableRow>
-									<TableCell>Email</TableCell>
-									<TableCell>Access Type</TableCell>
+									<TableCell>Пользователь</TableCell>
+									<TableCell>Права</TableCell>
 									<TableCell></TableCell>
 								</TableRow>
 							</TableHead>
@@ -105,14 +104,14 @@ const Access = (props) => {
 
 											<TableCell>
 												<IconButton
-													disabled={store.user?.email === user.email}
+													disabled={store.user?.identifier === user.email}
 													onClick={() => onEditButtonClicked(user.email)}
 												>
 													<EditIcon />
 												</IconButton>
 
 												<IconButton
-													disabled={store.user?.email === user.email}
+													disabled={store.user?.identifier === user.email}
 													onClick={() => onDeleteButtonClicked(user.email)}
 												>
 													<DeleteIcon />
@@ -128,9 +127,9 @@ const Access = (props) => {
 			</Grid>
 
 			<ActionConfirmDialog
-				action="Restrict"
-				actionDescription={`restrict access for the user with email "${selectedUserEmail()}"`}
-				entity="access"
+				action="Ограничить"
+				actionDescription={`ограничить доступ для "${selectedUserIdentifier()}"`}
+				entity="доступ"
 				isOpened={isRestrictConfirmOpened()}
 				onCancel={() => setIsRestrictConfirmOpened(false)}
 				onConfirm={onRestrict}
@@ -138,7 +137,7 @@ const Access = (props) => {
 
 			<GrantAccess
 				afterGrant={onChangeAccess}
-				email={selectedUserEmail()}
+				email={selectedUserIdentifier()}
 				isVisible={isChangeAccessOpened()}
 				onClose={() => setIsChangeAccessOpened(false)}
 			/>

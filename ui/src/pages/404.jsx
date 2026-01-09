@@ -13,7 +13,7 @@ const NotFound = () => {
 			}}
 		>
 			<Typography variant="h1">404</Typography>
-			<Typography variant="h4">Not found</Typography>
+			<Typography variant="h4">Страница не найдена</Typography>
 		</Box>
 	)
 }

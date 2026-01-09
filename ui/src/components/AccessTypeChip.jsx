@@ -7,11 +7,11 @@ import Chip from '@suid/material/Chip'
 export const makeAccessTypeUserFriendly = (at) => {
 	switch (at) {
 		case 'A':
-			return 'Admin'
+			return 'Админ'
 		case 'W':
-			return 'Can edit'
+			return 'Редактирование'
 		case 'R':
-			return 'Viewer'
+			return 'Просмотр'
 	}
 }
 

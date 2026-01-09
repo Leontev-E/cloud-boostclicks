@@ -1,15 +1,55 @@
-a:not(.default-link) {
+:root {
+	--cloud-bg: #f7f1e8;
+	--cloud-surface: #ffffff;
+	--cloud-ink: #1b1a17;
+	--cloud-muted: #5f5a52;
+	--cloud-accent: #f6a04d;
+	--cloud-accent-2: #2c5f5d;
+	--cloud-outline: rgba(27, 26, 23, 0.08);
+	--cloud-glow: rgba(246, 160, 77, 0.3);
+	font-synthesis: none;
+	text-rendering: optimizeLegibility;
+	-webkit-font-smoothing: antialiased;
+}
+
+*,
+*::before,
+*::after {
+	box-sizing: border-box;
+}
+
+body {
+	margin: 0;
+	min-height: 100vh;
+	color: var(--cloud-ink);
+	background:
+		radial-gradient(circle at 15% 20%, rgba(246, 160, 77, 0.18), transparent 45%),
+		radial-gradient(circle at 85% 10%, rgba(44, 95, 93, 0.14), transparent 40%),
+		linear-gradient(160deg, #fff7eb 0%, #f4efe6 60%, #f7f1e8 100%);
+}
+
+#root {
+	min-height: 100vh;
+}
+
+a {
 	text-decoration: none;
 	color: inherit;
+}
+
+a.default-link {
+	color: var(--cloud-accent-2);
+	font-weight: 600;
 }
 
 .drawer-paper.MuiDrawer-paper {
 	position: static;
 	height: 100%;
+	border-right: 1px solid var(--cloud-outline);
 }
 .drawer-paper-opened.MuiDrawer-paper {
 	width: 240px;
 }
 .drawer-paper-closed.MuiDrawer-paper {
-	width: initial;
+	width: 72px;
 }

@@ -33,7 +33,7 @@ const UploadFileTo = () => {
 
 		await API.files.uploadFileTo(params.id, path, file)
 
-		addAlert(`Uploaded file to "${path}"`, 'success')
+		addAlert(`Файл загружен в "${path}"`, 'success')
 
 		navigateToFiles()
 	}
@@ -46,7 +46,7 @@ const UploadFileTo = () => {
 					variant="outlined"
 					startIcon={<ChevronLeftIcon />}
 				>
-					Back
+					Назад
 				</Button>
 			</Box>
 
@@ -63,28 +63,28 @@ const UploadFileTo = () => {
 					'& > :not(style)': { my: 1.5 },
 				}}
 			>
-				<Typography variant="h5">Upload file to</Typography>
+				<Typography variant="h5">Загрузить файл в путь</Typography>
 
 				<Divider />
 				<TextField
 					id="path"
 					name="path"
-					label="Path"
-					variant="standard"
+					label="Путь"
+					variant="outlined"
 					fullWidth
 					required
 				/>
 				<TextField
 					id="file"
 					name="file"
-					label="File"
+					label="Файл"
 					type="file"
-					variant="standard"
+					variant="outlined"
 					fullWidth
 					required
 				/>
 				<Button type="submit" variant="contained" color="secondary">
-					Upload
+					Загрузить
 				</Button>
 			</Box>
 		</Stack>

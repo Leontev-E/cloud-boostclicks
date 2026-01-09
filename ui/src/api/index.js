@@ -46,6 +46,15 @@ const login = async (email, password) => {
 	})
 }
 
+/**
+ *
+ * @param {Record<string, any>} payload
+ * @returns {Promise<TokenData>}
+ */
+const telegramLogin = async (payload) => {
+	return await apiRequest('/auth/telegram', 'post', undefined, payload)
+}
+
 /////////////////////////////////////////////////////////////
 ////  STORAGES
 /////////////////////////////////////////////////////////////
@@ -313,6 +322,7 @@ const API = {
 	},
 	auth: {
 		login,
+		telegramLogin,
 	},
 	storages: {
 		createStorage,

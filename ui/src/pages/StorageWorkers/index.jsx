@@ -2,13 +2,8 @@ import Typography from '@suid/material/Typography'
 import Grid from '@suid/material/Grid'
 import Stack from '@suid/material/Stack'
 import Paper from '@suid/material/Paper'
-import Table from '@suid/material/Table'
-import TableBody from '@suid/material/TableBody'
-import TableCell from '@suid/material/TableCell'
-import TableContainer from '@suid/material/TableContainer'
-import TableHead from '@suid/material/TableHead'
-import TableRow from '@suid/material/TableRow'
 import Button from '@suid/material/Button'
+import Box from '@suid/material/Box'
 import { Show, createSignal, mapArray, onMount } from 'solid-js'
 import { useNavigate } from '@solidjs/router'
 
@@ -26,54 +21,66 @@ const StorageWorkers = () => {
 		setStorageWorkers(storageWorkers)
 	})
 
-	return (
-		<Stack container>
-			<Grid container sx={{ mb: 2 }}>
-				<Grid item xs={6}>
-					<Typography variant="h4">Storage Workers</Typography>
-				</Grid>
-				<Grid item xs={6} sx={{ display: 'flex', justifyContent: 'flex-end' }}>
-					<Button
-						onClick={() => navigate('/storage_workers/register')}
-						variant="contained"
-						color="secondary"
-					>
-						Register new
-					</Button>
-				</Grid>
-			</Grid>
+	const maskToken = (token) => {
+		if (!token || token.length < 10) {
+			return token || 'Не задан'
+		}
 
-			<Grid>
-				<TableContainer component={Paper}>
-					<Table sx={{ minWidth: 650 }}>
-						<Show
-							when={storageWorkers().length}
-							fallback={<div>There's no storage workers yet</div>}
-						>
-							<TableHead>
-								<TableRow>
-									<TableCell>Name</TableCell>
-									<TableCell>Storage</TableCell>
-									<TableCell>Token</TableCell>
-								</TableRow>
-							</TableHead>
-							<TableBody>
-								{mapArray(storageWorkers, (sw) => (
-									<TableRow
-										sx={{ '&:last-child td, &:last-child th': { border: 0 } }}
-									>
-										<TableCell component="th" scope="row">
-											{sw.name}
-										</TableCell>
-										<TableCell>{sw.storage_id}</TableCell>
-										<TableCell>{sw.token}</TableCell>
-									</TableRow>
-								))}
-							</TableBody>
-						</Show>
-					</Table>
-				</TableContainer>
-			</Grid>
+		return `${token.slice(0, 6)}...${token.slice(-4)}`
+	}
+
+	return (
+		<Stack spacing={3}>
+			<Stack
+				direction={{ xs: 'column', sm: 'row' }}
+				justifyContent="space-between"
+				alignItems={{ xs: 'flex-start', sm: 'center' }}
+				spacing={2}
+			>
+				<Box>
+					<Typography variant="h4">Боты</Typography>
+					<Typography variant="body2" color="text.secondary">
+						Добавляйте боты для ускорения загрузки и скачивания.
+					</Typography>
+				</Box>
+				<Button
+					onClick={() => navigate('/storage_workers/register')}
+					variant="contained"
+					color="secondary"
+				>
+					Добавить токен
+				</Button>
+			</Stack>
+
+			<Show
+				when={storageWorkers().length}
+				fallback={
+					<Paper sx={{ p: 4, textAlign: 'center' }}>
+						<Typography variant="h6">Токенов ботов пока нет</Typography>
+						<Typography variant="body2" color="text.secondary">
+							Добавьте первый токен бота, чтобы начать синхронизацию.
+						</Typography>
+					</Paper>
+				}
+			>
+				<Grid container spacing={2}>
+					{mapArray(storageWorkers, (sw) => (
+						<Grid item xs={12} md={6} lg={4}>
+							<Paper sx={{ p: 3 }}>
+								<Stack spacing={1}>
+									<Typography variant="h6">{sw.name}</Typography>
+									<Typography variant="body2" color="text.secondary">
+										Облако: {sw.storage_id || 'Пока не привязано'}
+									</Typography>
+									<Typography variant="body2">
+										Токен: {maskToken(sw.token)}
+									</Typography>
+								</Stack>
+							</Paper>
+						</Grid>
+					))}
+				</Grid>
+			</Show>
 		</Stack>
 	)
 }

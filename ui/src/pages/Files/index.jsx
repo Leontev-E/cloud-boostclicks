@@ -57,7 +57,7 @@ const Files = () => {
 			setUsers(users)
 			setIsGrantButtonAccessVisible(true)
 		} catch (err) {
-			addAlert('You do not have permissions to manage access', 'error')
+			addAlert('У вас нет прав на управление доступом', 'error')
 			console.error(err)
 			setIsGrantButtonAccessVisible(false)
 		}
@@ -126,7 +126,7 @@ const Files = () => {
 			: params.path
 
 		await API.files.createFolder(params.id, basePath, folderName)
-		addAlert(`Created folder "${folderName}"`, 'success')
+		addAlert(`Папка "${folderName}" создана`, 'success')
 		await fetchFSLayer()
 	}
 
@@ -147,41 +147,51 @@ const Files = () => {
 		event.target.value = null
 
 		await API.files.uploadFile(params.id, params.path, file)
-		addAlert(`Uploaded file "${file.name}"`, 'success')
+		addAlert(`Файл "${file.name}" загружен`, 'success')
 		await fetchFSLayer()
 	}
 
 	return (
 		<>
 			<Stack container>
-				<Grid container sx={{ mb: 2 }}>
-					<Grid item xs={4}>
+				<Grid container sx={{ mb: 2 }} spacing={2}>
+					<Grid item xs={12} md={4}>
 						<Typography variant="h4">{storage()?.name}</Typography>
+						<Typography variant="body2" color="text.secondary">
+							Файлы и доступы для этого облака.
+						</Typography>
 					</Grid>
 
-					<Grid item xs={4}>
+					<Grid item xs={12} md={4}>
 						<ToggleButtonGroup
 							exclusive
 							value={isAccessPage()}
 							color="primary"
 							onChange={(_, val) => setIsAccessPage(val)}
-							sx={{ display: 'flex', justifyContent: 'center' }}
+							sx={{
+								display: 'flex',
+								justifyContent: { xs: 'flex-start', md: 'center' },
+							}}
 						>
 							<ToggleButton value={false}>
 								<FolderOpenIcon fontSize="small" />
-								&nbsp; Files
+								&nbsp; Файлы
 							</ToggleButton>
 							<ToggleButton value={true}>
 								<LockIcon fontSize="small" />
-								&nbsp; Access
+								&nbsp; Доступ
 							</ToggleButton>
 						</ToggleButtonGroup>
 					</Grid>
 
 					<Grid
 						item
-						xs={4}
-						sx={{ display: 'flex', justifyContent: 'flex-end' }}
+						xs={12}
+						md={4}
+						sx={{
+							display: 'flex',
+							justifyContent: { xs: 'flex-start', md: 'flex-end' },
+						}}
 					>
 						<Show
 							when={!isAccessPage()}
@@ -193,7 +203,7 @@ const Files = () => {
 										onClick={() => setIsGrantAccessVisible(true)}
 									>
 										<AddIcon sx={{ mr: 1 }} />
-										Grant access
+										Выдать доступ
 									</Fab>
 									<GrantAccess
 										isVisible={isGrantAccessVisible()}
@@ -203,18 +213,18 @@ const Files = () => {
 								</Show>
 							}
 						>
-							<Menu button_title="Create">
+							<Menu button_title="Создать">
 								<MenuItem onClick={openCreateFolderDialog}>
 									<ListItemIcon>
 										<UploadFolderIcon />
 									</ListItemIcon>
-									<ListItemText>Create folder</ListItemText>
+									<ListItemText>Папку</ListItemText>
 								</MenuItem>
 								<MenuItem onClick={uploadFileClickHandler}>
 									<ListItemIcon>
 										<UploadFileIcon />
 									</ListItemIcon>
-									<ListItemText>Upload file</ListItemText>
+									<ListItemText>Файл</ListItemText>
 								</MenuItem>
 								<MenuItem
 									onClick={() => navigate(`/storages/${params.id}/upload_to`)}
@@ -222,7 +232,7 @@ const Files = () => {
 									<ListItemIcon>
 										<UploadFileIcon />
 									</ListItemIcon>
-									<ListItemText>Upload file to</ListItemText>
+									<ListItemText>Файл в путь</ListItemText>
 								</MenuItem>
 							</Menu>
 						</Show>
@@ -241,7 +251,7 @@ const Files = () => {
 					}
 				>
 					<Grid>
-						<Show when={fsLayer().length} fallback={<>Not files yet</>}>
+						<Show when={fsLayer().length} fallback={<>Файлов пока нет</>}>
 							<List sx={{ minWidth: 320, maxWidth: 540, mx: 'auto' }}>
 								<Divider />
 								{mapArray(fsLayer, (fsElement) => (

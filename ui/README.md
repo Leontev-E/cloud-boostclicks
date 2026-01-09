@@ -29,6 +29,11 @@ It correctly bundles Solid in production mode and optimizes the build for the be
 The build is minified and the filenames include the hashes.<br>
 Your app is ready to be deployed!
 
+## Environment
+
+- `VITE_API_BASE` (optional) - API base URL, defaults to `http://localhost:8000/api`.
+- `VITE_TELEGRAM_LOGIN_BOT_USERNAME` - Telegram bot username for the login widget.
+
 ## Deployment
 
 You can deploy the `dist` folder to any static host provider (netlify, surge, now, etc.)

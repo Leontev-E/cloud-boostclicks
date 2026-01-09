@@ -43,7 +43,7 @@ const CreateFolderDialog = (props) => {
 		const value = event.currentTarget.value
 
 		setErrFolderName(
-			value.includes('/') ? 'Folder name cannot have a "/" symbol' : null
+			value.includes('/') ? 'Название папки не может содержать "/"' : null
 		)
 
 		setFolderName(value)
@@ -65,7 +65,7 @@ const CreateFolderDialog = (props) => {
 		<>
 			<Dialog open={props.isOpened} onClose={onClose}>
 				<form onSubmit={onCreate}>
-					<DialogTitle>Create folder</DialogTitle>
+					<DialogTitle>Создать папку</DialogTitle>
 					<DialogContent>
 						<TextField
 							ref={folderNameElement}
@@ -73,12 +73,12 @@ const CreateFolderDialog = (props) => {
 							required
 							margin="dense"
 							id="folder-name"
-							label="New folder name"
+							label="Название новой папки"
 							onChange={validateFolderName}
 							helperText={errFolderName}
 							error={errFolderName() !== null}
 							fullWidth
-							variant="standard"
+							variant="outlined"
 						/>
 					</DialogContent>
 					<DialogActions>
@@ -87,10 +87,10 @@ const CreateFolderDialog = (props) => {
 							color="success"
 							disabled={!folderName().length || errFolderName()}
 						>
-							Create
+							Создать
 						</Button>
 						<Button onClick={onClose} color="error">
-							Cancel
+							Отмена
 						</Button>
 					</DialogActions>
 				</form>
