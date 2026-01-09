@@ -51,6 +51,20 @@ const Files = () => {
 
 	let uploadFileInputElement
 
+	const decodePath = (value) => {
+		if (!value) {
+			return ''
+		}
+
+		try {
+			return decodeURIComponent(value)
+		} catch (err) {
+			return value
+		}
+	}
+
+	const getCurrentPath = () => decodePath(params.path || '')
+
 	const fetchUsersWithAccess = async () => {
 		try {
 			const users = await API.access.listUsersWithAccess(params.id)
@@ -69,10 +83,11 @@ const Files = () => {
 	}
 
 	const fetchFSLayer = async (path = params.path) => {
-		const fsLayerRes = await API.files.getFSLayer(params.id, path)
+		const safePath = decodePath(path || '')
+		const fsLayerRes = await API.files.getFSLayer(params.id, safePath)
 
-		if (path.length) {
-			const parentPath = path.split('/').slice(0, -1).join('/')
+		if (safePath.length) {
+			const parentPath = safePath.split('/').slice(0, -1).join('/')
 			const backToParent = { is_file: false, name: '..', path: parentPath }
 
 			fsLayerRes.splice(0, 0, backToParent)
@@ -120,9 +135,10 @@ const Files = () => {
 	 * @param {string} folderName
 	 */
 	const createFolder = async (folderName) => {
-		const basePath = params.path.endsWith('/')
-			? params.path.slice(0, -1)
-			: params.path
+		const currentPath = getCurrentPath()
+		const basePath = currentPath.endsWith('/')
+			? currentPath.slice(0, -1)
+			: currentPath
 
 		await API.files.createFolder(params.id, basePath, folderName)
 		addAlert(`Папка "${folderName}" создана`, 'success')
@@ -144,10 +160,11 @@ const Files = () => {
 		}
 
 		event.target.value = null
+		const currentPath = getCurrentPath()
 
 		for (const file of files) {
 			try {
-				await API.files.uploadFile(params.id, params.path, file)
+				await API.files.uploadFile(params.id, currentPath, file)
 				addAlert(`Файл "${file.name}" загружен`, 'success')
 			} catch (err) {
 				addAlert(

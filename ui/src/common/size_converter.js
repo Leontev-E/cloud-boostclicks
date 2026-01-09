@@ -1,4 +1,4 @@
-const units = ['bytes', 'KiB', 'MiB', 'GiB', 'TiB']
+const units = ['B', 'KB', 'MB', 'GB', 'TB']
 
 /**
  *
@@ -6,11 +6,11 @@ const units = ['bytes', 'KiB', 'MiB', 'GiB', 'TiB']
  * @returns {string}
  */
 export const convertSize = (size) => {
-	let l = 0,
-		n = size
+	let l = 0
+	let n = size
 
-	while (n >= 1024 && l < units.length - 1 && ++l) {
-		n = n / 1024
+	while (n >= 1000 && l < units.length - 1 && ++l) {
+		n = n / 1000
 	}
 
 	return `${n.toFixed(n < 10 && l > 0 ? 1 : 0)} ${units[l]}`

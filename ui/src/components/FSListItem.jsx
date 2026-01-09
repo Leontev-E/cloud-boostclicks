@@ -1,4 +1,4 @@
-import ListItem from '@suid/material/ListItem'
+﻿import ListItem from '@suid/material/ListItem'
 import ListItemButton from '@suid/material/ListItemButton'
 import ListItemIcon from '@suid/material/ListItemIcon'
 import ListItemText from '@suid/material/ListItemText'
@@ -11,7 +11,7 @@ import MoreVertIcon from '@suid/icons-material/MoreVert'
 import DownloadIcon from '@suid/icons-material/Download'
 import InfoIcon from '@suid/icons-material/Info'
 import DeleteIcon from '@suid/icons-material/Delete'
-import { createSignal } from 'solid-js'
+import { Show, createSignal } from 'solid-js'
 import { useNavigate, useParams } from '@solidjs/router'
 
 import API from '../api'
@@ -44,9 +44,17 @@ const FSListItem = (props) => {
 		setMoreAnchorEl(null)
 	}
 
+	const encodePath = (path) =>
+		path
+			.split('/')
+			.map((segment) => encodeURIComponent(segment))
+			.join('/')
+
 	const handleNavigate = () => {
 		if (!props.fsElement.is_file) {
-			navigate(`/storages/${props.storageId}/files/${props.fsElement.path}`)
+			navigate(
+				`/storages/${props.storageId}/files/${encodePath(props.fsElement.path)}`
+			)
 		}
 	}
 
@@ -130,8 +138,8 @@ const FSListItem = (props) => {
 
 			<ActionConfirmDialog
 				action="Удалить"
-				entity="файл"
-				actionDescription={`удалить файл ${props.fsElement.name}`}
+				entity="элемент"
+				actionDescription={`Удалить "${props.fsElement.name}"`}
 				isOpened={isActionConfirmDialogOpened()}
 				onConfirm={deleteFile}
 				onCancel={closeActionConfirmDialog}
