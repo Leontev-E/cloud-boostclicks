@@ -10,19 +10,24 @@ import Grid from '@suid/material/Grid'
 import Stack from '@suid/material/Stack'
 import Alert from '@suid/material/Alert'
 import Chip from '@suid/material/Chip'
+import Link from '@suid/material/Link'
 import createLocalStore from '../../libs'
-import { A, useNavigate } from '@solidjs/router'
+import { useNavigate } from '@solidjs/router'
 
 import API from '../api'
 import Footer from '../components/Footer'
 import { alertStore } from '../components/AlertStack'
 
-const Login = () => {
+const Login = (props) => {
 	const [store, setStore] = createLocalStore()
 	const [telegramError, setTelegramError] = createSignal()
+	const [mode, setMode] = createSignal(
+		props.initialMode === 'register' ? 'register' : 'login'
+	)
 	const { addAlert } = alertStore
 	const navigate = useNavigate()
 	let telegramRoot
+	const isRegister = () => mode() === 'register'
 
 	const handleTelegramAuth = async (user) => {
 		try {
@@ -89,6 +94,11 @@ const Login = () => {
 		const email = data.get('email')
 		const password = data.get('password')
 
+		if (isRegister()) {
+			await API.users.register(email, password)
+			addAlert('Аккаунт создан.', 'success')
+		}
+
 		const tokenData = await API.auth.login(email, password)
 
 		setStore('access_token', tokenData.access_token)
@@ -98,9 +108,12 @@ const Login = () => {
 		navigate(redirect_url)
 	}
 
-	return (
-		<>
-			<Container maxWidth="lg" sx={{ py: { xs: 6, md: 10 } }}>
+		return (
+		<Box sx={{ minHeight: '100vh', display: 'flex', flexDirection: 'column' }}>
+			<Container
+				maxWidth="lg"
+				sx={{ py: { xs: 6, md: 10 }, flex: 1 }}
+			>
 				<Grid container spacing={{ xs: 4, md: 6 }} alignItems="center">
 					<Grid item xs={12} md={6}>
 						<Stack spacing={2}>
@@ -121,15 +134,21 @@ const Login = () => {
 					<Grid item xs={12} md={6}>
 						<Paper sx={{ p: { xs: 3, md: 4 } }} elevation={6}>
 							<Stack spacing={2}>
-								<Typography variant="h5">Вход в приложение</Typography>
+								<Typography variant="h5">
+									{isRegister() ? 'Регистрация' : 'Вход в приложение'}
+								</Typography>
 								<Typography variant="body2" color="text.secondary">
-									Войдите через Telegram, чтобы продолжить.
+									{isRegister()
+										? 'Создайте аккаунт или войдите через Telegram.'
+										: 'Войдите через Telegram, чтобы продолжить.'}
 								</Typography>
 								<Box ref={(el) => (telegramRoot = el)} sx={{ minHeight: 54 }} />
 								{telegramError() ? (
 									<Alert severity="warning">{telegramError()}</Alert>
 								) : null}
-								<Divider>или войдите по почте</Divider>
+								<Divider>
+									{isRegister() ? 'или зарегистрируйтесь' : 'или войдите по почте'}
+								</Divider>
 								<Box component="form" onSubmit={handleSubmit}>
 									<Stack spacing={2}>
 										<TextField
@@ -149,20 +168,30 @@ const Login = () => {
 											fullWidth
 										/>
 										<Button type="submit" variant="contained" color="primary">
-											Войти
+											{isRegister() ? 'Зарегистрироваться' : 'Войти'}
 										</Button>
 									</Stack>
 								</Box>
-								<A class="default-link" href="/register">
-									Еще нет аккаунта? Зарегистрироваться.
-								</A>
+								<Link
+									component="button"
+									type="button"
+									onClick={() =>
+										setMode(isRegister() ? 'login' : 'register')
+									}
+									underline="hover"
+									sx={{ alignSelf: 'flex-start', fontWeight: 600 }}
+								>
+									{isRegister()
+										? 'Уже есть аккаунт? Войти.'
+										: 'Еще нет аккаунта? Зарегистрироваться.'}
+								</Link>
 							</Stack>
 						</Paper>
 					</Grid>
 				</Grid>
 			</Container>
 			<Footer />
-		</>
+		</Box>
 	)
 }
 

@@ -6,7 +6,6 @@ import Footer from '../components/Footer'
 import Box from '@suid/material/Box'
 import Container from '@suid/material/Container'
 import CssBaseline from '@suid/material/CssBaseline'
-import Toolbar from '@suid/material/Toolbar'
 
 import { checkAuth } from '../common/auth_guard'
 
@@ -14,24 +13,30 @@ const BasicLayout = () => {
 	onMount(checkAuth)
 
 	return (
-		<>
+		<Box sx={{ minHeight: '100vh', display: 'flex', flexDirection: 'column' }}>
+			<CssBaseline />
 			<Header />
-			<Box>
-				<CssBaseline />
-				<Toolbar />
+			<Box sx={{ display: 'flex', flex: 1, minHeight: 0 }}>
+				<SideBar></SideBar>
 
-				<Box sx={{ display: 'flex' }}>
-					<SideBar></SideBar>
-
-					<Box sx={{ flex: 1, minWidth: 0 }}>
-						<Container maxWidth="lg" sx={{ pt: { xs: 3, md: 5 }, pb: 6 }}>
-							<Outlet />
-						</Container>
-						<Footer />
-					</Box>
+				<Box
+					sx={{
+						flex: 1,
+						minWidth: 0,
+						display: 'flex',
+						flexDirection: 'column',
+					}}
+				>
+					<Container
+						maxWidth="lg"
+						sx={{ pt: { xs: 3, md: 5 }, pb: 6, flex: 1 }}
+					>
+						<Outlet />
+					</Container>
+					<Footer />
 				</Box>
 			</Box>
-		</>
+		</Box>
 	)
 }
 
