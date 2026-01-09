@@ -112,7 +112,7 @@ pnpm cap:open:ios
 ## Деплой
 
 - Рекомендуется reverse-proxy (Nginx/Traefik) и TLS.
-- Домен: `app.boostclicks.ru`.
+- Домен: `cloud.boostclicks.ru`.
 - Не храните `TELEGRAM_LOGIN_BOT_TOKEN` в репозитории.
 
 ## Контакты разработчика
@@ -238,7 +238,7 @@ pnpm cap:open:ios
 ## Deploy
 
 - Use a reverse proxy (Nginx/Traefik) + TLS.
-- Domain: `app.boostclicks.ru`.
+- Domain: `cloud.boostclicks.ru`.
 - Never commit `TELEGRAM_LOGIN_BOT_TOKEN` to git.
 
 ## Developer Contacts
