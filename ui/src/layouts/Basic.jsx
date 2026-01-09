@@ -2,6 +2,7 @@ import { onMount } from 'solid-js'
 import { Outlet } from '@solidjs/router'
 import Header from '../components/Header'
 import SideBar from '../components/SideBar'
+import Footer from '../components/Footer'
 import Box from '@suid/material/Box'
 import Container from '@suid/material/Container'
 import CssBaseline from '@suid/material/CssBaseline'
@@ -22,9 +23,12 @@ const BasicLayout = () => {
 				<Box sx={{ display: 'flex' }}>
 					<SideBar></SideBar>
 
-					<Container maxWidth="lg" sx={{ pt: { xs: 3, md: 5 }, pb: 6 }}>
-						<Outlet />
-					</Container>
+					<Box sx={{ flex: 1, minWidth: 0 }}>
+						<Container maxWidth="lg" sx={{ pt: { xs: 3, md: 5 }, pb: 6 }}>
+							<Outlet />
+						</Container>
+						<Footer />
+					</Box>
 				</Box>
 			</Box>
 		</>

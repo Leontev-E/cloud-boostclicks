@@ -1,4 +1,4 @@
-import { createSignal, onCleanup, onMount } from 'solid-js'
+﻿import { createSignal, onCleanup, onMount } from 'solid-js'
 import Container from '@suid/material/Container'
 import Box from '@suid/material/Box'
 import TextField from '@suid/material/TextField'
@@ -14,6 +14,7 @@ import createLocalStore from '../../libs'
 import { A, useNavigate } from '@solidjs/router'
 
 import API from '../api'
+import Footer from '../components/Footer'
 import { alertStore } from '../components/AlertStack'
 
 const Login = () => {
@@ -26,9 +27,7 @@ const Login = () => {
 	const handleTelegramAuth = async (user) => {
 		try {
 			const tokenData = await API.auth.telegramLogin(user)
-			const identifier = user.username
-				? `@${user.username}`
-				: `tg:${user.id}`
+			const identifier = user.username ? `@${user.username}` : `tg:${user.id}`
 
 			const displayName = [user.first_name, user.last_name]
 				.filter(Boolean)
@@ -100,28 +99,29 @@ const Login = () => {
 	}
 
 	return (
-		<Container maxWidth="lg" sx={{ py: { xs: 6, md: 10 } }}>
-			<Grid container spacing={{ xs: 4, md: 6 }} alignItems="center">
-				<Grid item xs={12} md={6}>
-					<Stack spacing={2}>
-						<Chip
-							label="cloud.boostclicks"
-							color="secondary"
-							sx={{ width: 'fit-content', fontWeight: 600 }}
-						/>
+		<>
+			<Container maxWidth="lg" sx={{ py: { xs: 6, md: 10 } }}>
+				<Grid container spacing={{ xs: 4, md: 6 }} alignItems="center">
+					<Grid item xs={12} md={6}>
+						<Stack spacing={2}>
+							<Chip
+								label="cloud.boostclicks"
+								color="secondary"
+								sx={{ width: 'fit-content', fontWeight: 600 }}
+							/>
 							<Typography variant="h2" sx={{ maxWidth: 420 }}>
 								Ваше облако на базе Telegram, переосмысленное.
 							</Typography>
 							<Typography variant="body1" color="text.secondary">
 								Входите через Telegram, подключайте токены ботов и управляйте
-								общими облаками в современном интерфейсе для всех устройств.
+								облаками на новом уровне.
 							</Typography>
 						</Stack>
 					</Grid>
 					<Grid item xs={12} md={6}>
 						<Paper sx={{ p: { xs: 3, md: 4 } }} elevation={6}>
 							<Stack spacing={2}>
-								<Typography variant="h5">С возвращением</Typography>
+								<Typography variant="h5">Вход в приложение</Typography>
 								<Typography variant="body2" color="text.secondary">
 									Войдите через Telegram, чтобы продолжить.
 								</Typography>
@@ -129,17 +129,17 @@ const Login = () => {
 								{telegramError() ? (
 									<Alert severity="warning">{telegramError()}</Alert>
 								) : null}
-								<Divider>или через почту</Divider>
+								<Divider>или войдите по почте</Divider>
 								<Box component="form" onSubmit={handleSubmit}>
 									<Stack spacing={2}>
-									<TextField
-										name="email"
-										label="Электронная почта"
-										variant="outlined"
-										type="email"
-										required
-										fullWidth
-									/>
+										<TextField
+											name="email"
+											label="Электронная почта"
+											variant="outlined"
+											type="email"
+											required
+											fullWidth
+										/>
 										<TextField
 											name="password"
 											label="Пароль"
@@ -154,13 +154,15 @@ const Login = () => {
 									</Stack>
 								</Box>
 								<A class="default-link" href="/register">
-									Нужен админ-аккаунт? Зарегистрируйтесь.
+									Еще нет аккаунта? Зарегистрироваться.
 								</A>
 							</Stack>
 						</Paper>
+					</Grid>
 				</Grid>
-			</Grid>
-		</Container>
+			</Container>
+			<Footer />
+		</>
 	)
 }
 

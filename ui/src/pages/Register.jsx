@@ -1,4 +1,4 @@
-import { onMount } from 'solid-js'
+﻿import { onMount } from 'solid-js'
 import Container from '@suid/material/Container'
 import Box from '@suid/material/Box'
 import TextField from '@suid/material/TextField'
@@ -12,6 +12,7 @@ import createLocalStore from '../../libs'
 import { A, useNavigate } from '@solidjs/router'
 
 import API from '../api'
+import Footer from '../components/Footer'
 import { alertStore } from '../components/AlertStack'
 
 const Register = () => {
@@ -36,7 +37,7 @@ const Register = () => {
 		const password = data.get('password')
 
 		await API.users.register(email, password)
-		addAlert('Регистрация прошла успешно')
+		addAlert('Администратор создан.', 'success')
 
 		const tokenData = await API.auth.login(email, password)
 
@@ -48,44 +49,47 @@ const Register = () => {
 	}
 
 	return (
-		<Container maxWidth="sm" sx={{ py: { xs: 6, md: 10 } }}>
-			<Paper sx={{ p: { xs: 3, md: 4 } }} elevation={6}>
-				<Stack spacing={2}>
-				<Typography variant="h5">Создать админ-аккаунт</Typography>
-				<Alert severity="info">
-					Для пользователей по умолчанию используется вход через Telegram.
-					Создайте админскую почту только как резервный доступ.
-				</Alert>
-				<Divider />
-				<Box component="form" onSubmit={handleSubmit}>
+		<>
+			<Container maxWidth="sm" sx={{ py: { xs: 6, md: 10 } }}>
+				<Paper sx={{ p: { xs: 3, md: 4 } }} elevation={6}>
 					<Stack spacing={2}>
-						<TextField
-							name="email"
-							label="Электронная почта"
-							type="email"
-							variant="outlined"
-							required
-							fullWidth
-						/>
-						<TextField
-							name="password"
-							label="Пароль"
-							variant="outlined"
-							type="password"
-							required
-							fullWidth
-						/>
-						<Button type="submit" variant="contained" color="primary">
-							Зарегистрировать администратора
-						</Button>
+						<Typography variant="h5">Создание администратора</Typography>
+						<Alert severity="info">
+							Для пользователей по умолчанию используется вход через Telegram.
+							Регистрация оставлена для администраторов и техподдержки.
+						</Alert>
+						<Divider />
+						<Box component="form" onSubmit={handleSubmit}>
+							<Stack spacing={2}>
+								<TextField
+									name="email"
+									label="Электронная почта"
+									type="email"
+									variant="outlined"
+									required
+									fullWidth
+								/>
+								<TextField
+									name="password"
+									label="Пароль"
+									variant="outlined"
+									type="password"
+									required
+									fullWidth
+								/>
+								<Button type="submit" variant="contained" color="primary">
+									Создать администратора
+								</Button>
+							</Stack>
+						</Box>
+						<A class="default-link" href="/login">
+							Уже есть аккаунт? Войти.
+						</A>
 					</Stack>
-				</Box>
-				<A class="default-link" href="/login">
-					Уже есть доступ? Войти.
-				</A>
-			</Stack>
-		</Paper>
-		</Container>
+				</Paper>
+			</Container>
+			<Footer />
+		</>
 	)
 }
 
