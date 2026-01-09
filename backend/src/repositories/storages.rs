@@ -53,7 +53,8 @@ impl<'d> StoragesRepository<'d> {
                 FROM {TABLE} s
                 JOIN {ACCESS_TABLE} a ON s.id = a.storage_id
                 LEFT JOIN {FILES_TABLE} f ON s.id = f.storage_id
-                WHERE a.user_id = $1 AND (f.path NOT LIKE '%/' OR f.path IS NULL)
+                    AND (f.path NOT LIKE '%/' OR f.path IS NULL)
+                WHERE a.user_id = $1
                 GROUP by s.id
             "
             )

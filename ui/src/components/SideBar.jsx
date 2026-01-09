@@ -6,20 +6,34 @@ import ChevronLeftIcon from '@suid/icons-material/ChevronLeft'
 import ChevronRightIcon from '@suid/icons-material/ChevronRight'
 import ListItem from '@suid/material/ListItem'
 import ListItemButton from '@suid/material/ListItemButton'
-import { createSignal } from 'solid-js'
+import ListItemText from '@suid/material/ListItemText'
+import ListSubheader from '@suid/material/ListSubheader'
+import { createSignal, mapArray, onMount, Show } from 'solid-js'
 import StorageIcon from '@suid/icons-material/Storage'
 import SmartToyIcon from '@suid/icons-material/SmartToyOutlined'
+import { A } from '@solidjs/router'
 
+import API from '../api'
 import SideBarItem from './SideBarItem'
 
 const initOpen = window.innerWidth > 1024
 
 const SideBar = () => {
 	const [open, setOpen] = createSignal(initOpen)
+	const [storages, setStorages] = createSignal([])
 
 	const toggleDrawerOpen = () => {
 		setOpen((open) => !open)
 	}
+
+	onMount(async () => {
+		try {
+			const storagesSchema = await API.storages.listStorages()
+			setStorages(storagesSchema.storages || [])
+		} catch {}
+	})
+
+	const recentStorages = () => storages().slice(0, 3)
 
 	return (
 		<Drawer
@@ -56,6 +70,33 @@ const SideBar = () => {
 					<SmartToyIcon />
 				</SideBarItem>
 			</List>
+			<Show when={open() && recentStorages().length}>
+				<Divider />
+				<List
+					subheader={
+						<ListSubheader
+							component="div"
+							disableSticky
+							sx={{ bgcolor: 'transparent', lineHeight: 1.4 }}
+						>
+							Последние облака
+						</ListSubheader>
+					}
+				>
+					{mapArray(recentStorages, (storage) => (
+						<ListItem disablePadding>
+							<A href={`/storages/${storage.id}/files`}>
+								<ListItemButton sx={{ pl: 4, pr: 2.5, py: 0.75 }}>
+									<ListItemText
+										primary={storage.name}
+										primaryTypographyProps={{ noWrap: true, fontSize: '0.9rem' }}
+									/>
+								</ListItemButton>
+							</A>
+						</ListItem>
+					))}
+				</List>
+			</Show>
 		</Drawer>
 	)
 }
