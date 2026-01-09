@@ -49,7 +49,8 @@ const Storages = () => {
 				<Stack spacing={1}>
 					<Typography variant="h6">Как подключить облако</Typography>
 					<Typography variant="body2" color="text.secondary">
-						1) Создайте Telegram-канал (публичный или приватный).
+						1) Создайте Telegram-канал (рекомендуется создавать приватный
+						канал).
 					</Typography>
 					<Typography variant="body2" color="text.secondary">
 						2) Получите ID канала: добавьте @userinfobot или @getmyid_bot
@@ -60,15 +61,19 @@ const Storages = () => {
 						3) Создайте облако, указав название и ID канала.
 					</Typography>
 					<Typography variant="body2" color="text.secondary">
-						4) Перейдите в раздел «Боты», добавьте токен и привяжите бота
+						4) Перейдите в раздел "Боты", добавьте токен и привяжите бота
 						к облаку. Бота нужно назначить админом канала.
 					</Typography>
 					<Typography variant="body2" color="text.secondary">
-						5) Готово — загружайте файлы.
+						5) Для более быстрой работы можно добавить несколько ботов в канал
+						и привязать их к одному облаку.
+					</Typography>
+					<Typography variant="body2" color="text.secondary">
+						6) Готово - загружайте файлы.
 					</Typography>
 					<Typography variant="caption" color="text.secondary">
-						Приватный канал поддерживается. Домен нужен только для Telegram-логина,
-						для канала домен не добавляется.
+						Поддерживаются как публичные, так и приватные каналы. К одному облаку
+						рекомендуется привязывать несколько ботов для более быстрой работы.
 					</Typography>
 				</Stack>
 			</Paper>

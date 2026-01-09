@@ -46,7 +46,10 @@ const StorageWorkerCreateForm = () => {
 
 		await API.storageWorkers.createStorageWorker(name, token, storageId)
 
-		addAlert(`Бот "${name}" добавлен.`, 'success')
+		addAlert(
+			`Бот "${name}" добавлен. Назначьте его администратором канала.`,
+			'success'
+		)
 
 		navigate('/storage_workers')
 	}
@@ -69,6 +72,10 @@ const StorageWorkerCreateForm = () => {
 					<Typography variant="body2" color="text.secondary">
 						Создайте бота в @BotFather, получите токен и добавьте бота в канал.
 						Бот должен быть администратором, чтобы отправлять файлы.
+					</Typography>
+					<Typography variant="body2" color="text.secondary">
+						Для более быстрой работы можно добавить несколько ботов и
+						привязать их к одному облаку.
 					</Typography>
 				</Stack>
 			</Paper>

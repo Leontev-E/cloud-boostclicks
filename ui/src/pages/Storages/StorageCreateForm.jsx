@@ -82,12 +82,16 @@ const StorageCreateForm = () => {
 				<Stack spacing={1}>
 					<Typography variant="h6">Подключение облака</Typography>
 					<Typography variant="body2" color="text.secondary">
-						Можно использовать приватный канал. Домен для канала не нужен — он
-						требуется только для Telegram-логина.
+						Поддерживаются публичные и приватные каналы. Рекомендуется
+						приватный канал.
 					</Typography>
 					<Typography variant="body2" color="text.secondary">
-						После создания облака перейдите в раздел «Боты» и добавьте бота с
-						токеном. Боту нужны права администратора канала.
+						После создания облака перейдите в раздел "Боты" и добавьте бота с
+						токеном. Бота нужно назначить администратором канала.
+					</Typography>
+					<Typography variant="body2" color="text.secondary">
+						К одному облаку можно привязать несколько ботов для более быстрой
+						работы.
 					</Typography>
 				</Stack>
 			</Paper>

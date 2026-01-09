@@ -65,6 +65,10 @@ const StorageWorkers = () => {
 					<Typography variant="body2" color="text.secondary">
 						3) Привяжите бота к нужному облаку ниже.
 					</Typography>
+					<Typography variant="body2" color="text.secondary">
+						4) Для более быстрой работы можно добавить несколько ботов и
+						привязать их к одному облаку.
+					</Typography>
 				</Stack>
 			</Paper>
 
