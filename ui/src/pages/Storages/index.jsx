@@ -1,4 +1,4 @@
-import Typography from '@suid/material/Typography'
+﻿import Typography from '@suid/material/Typography'
 import Grid from '@suid/material/Grid'
 import Stack from '@suid/material/Stack'
 import Paper from '@suid/material/Paper'
@@ -45,11 +45,39 @@ const Storages = () => {
 				</Button>
 			</Stack>
 
+			<Paper sx={{ p: { xs: 2.5, md: 3 } }}>
+				<Stack spacing={1}>
+					<Typography variant="h6">Как подключить облако</Typography>
+					<Typography variant="body2" color="text.secondary">
+						1) Создайте Telegram-канал (публичный или приватный).
+					</Typography>
+					<Typography variant="body2" color="text.secondary">
+						2) Получите ID канала: добавьте @userinfobot или @getmyid_bot
+						в канал и отправьте сообщение, либо перешлите сообщение из
+						канала в бота. ID будет вида -1001234567890.
+					</Typography>
+					<Typography variant="body2" color="text.secondary">
+						3) Создайте облако, указав название и ID канала.
+					</Typography>
+					<Typography variant="body2" color="text.secondary">
+						4) Перейдите в раздел «Боты», добавьте токен и привяжите бота
+						к облаку. Бота нужно назначить админом канала.
+					</Typography>
+					<Typography variant="body2" color="text.secondary">
+						5) Готово — загружайте файлы.
+					</Typography>
+					<Typography variant="caption" color="text.secondary">
+						Приватный канал поддерживается. Домен нужен только для Telegram-логина,
+						для канала домен не добавляется.
+					</Typography>
+				</Stack>
+			</Paper>
+
 			<Show
 				when={storages().length}
 				fallback={
 					<Paper sx={{ p: 4, textAlign: 'center' }}>
-						<Typography variant="h6">Облаков пока нет</Typography>
+						<Typography variant="h6">Облака пока не созданы</Typography>
 						<Typography variant="body2" color="text.secondary">
 							Создайте первое облако и подключите Telegram-канал.
 						</Typography>

@@ -1,17 +1,17 @@
-import Divider from '@suid/material/Divider'
+﻿import Divider from '@suid/material/Divider'
 import Box from '@suid/material/Box'
 import Button from '@suid/material/Button'
 import TextField from '@suid/material/TextField'
 import Select from '@suid/material/Select'
 import InputLabel from '@suid/material/InputLabel'
 import FormControl from '@suid/material/FormControl'
+import FormHelperText from '@suid/material/FormHelperText'
 import Typography from '@suid/material/Typography'
+import Paper from '@suid/material/Paper'
 import { createSignal, mapArray, onMount } from 'solid-js'
 import { useNavigate } from '@solidjs/router'
 import Stack from '@suid/material/Stack'
 import MenuItem from '@suid/material/MenuItem'
-import IconButton from '@suid/material/IconButton'
-import HelpOutlineIcon from '@suid/icons-material/HelpOutline'
 import ChevronLeftIcon from '@suid/icons-material/ChevronLeft'
 
 import API from '../../api'
@@ -24,6 +24,7 @@ const StorageWorkerCreateForm = () => {
 	const [storages, setStorages] = createSignal([])
 	const { addAlert } = alertStore
 	const navigate = useNavigate()
+	const tokenHint = 'Токен создается в @BotFather и выглядит как 123456:ABC...'
 
 	onMount(async () => {
 		const storagesSchema = await API.storages.listStorages()
@@ -45,13 +46,13 @@ const StorageWorkerCreateForm = () => {
 
 		await API.storageWorkers.createStorageWorker(name, token, storageId)
 
-		addAlert(`Бот "${name}" добавлен`, 'success')
+		addAlert(`Бот "${name}" добавлен.`, 'success')
 
 		navigate('/storage_workers')
 	}
 
 	return (
-		<Stack sx={{ maxWidth: 540, minWidth: 320, mx: 'auto' }}>
+		<Stack sx={{ maxWidth: 540, minWidth: 320, mx: 'auto' }} spacing={2}>
 			<Box>
 				<Button
 					onClick={() => navigate('/storage_workers')}
@@ -61,6 +62,16 @@ const StorageWorkerCreateForm = () => {
 					Назад
 				</Button>
 			</Box>
+
+			<Paper sx={{ p: 2.5 }}>
+				<Stack spacing={1}>
+					<Typography variant="h6">Подключение бота</Typography>
+					<Typography variant="body2" color="text.secondary">
+						Создайте бота в @BotFather, получите токен и добавьте бота в канал.
+						Бот должен быть администратором, чтобы отправлять файлы.
+					</Typography>
+				</Stack>
+			</Paper>
 
 			<Box
 				component="form"
@@ -75,17 +86,7 @@ const StorageWorkerCreateForm = () => {
 					'& > :not(style)': { my: 1.5 },
 				}}
 			>
-				<Typography variant="h5">
-					Добавить токен бота
-					<a
-						href="https://boostclicks.ru"
-						target="_blank"
-					>
-						<IconButton color="warning" sx={{ py: 0 }}>
-							<HelpOutlineIcon />
-						</IconButton>
-					</a>
-				</Typography>
+				<Typography variant="h5">Добавить бота</Typography>
 				<Divider />
 				<TextField
 					id="name"
@@ -101,6 +102,7 @@ const StorageWorkerCreateForm = () => {
 					name="token"
 					label="Токен бота"
 					variant="outlined"
+					helperText={tokenHint}
 					fullWidth
 					required
 				/>
@@ -116,10 +118,13 @@ const StorageWorkerCreateForm = () => {
 							<MenuItem value={storage.id}>{storage.name}</MenuItem>
 						))}
 					</Select>
+					<FormHelperText>
+						Выберите облако, в которое бот будет отправлять файлы.
+					</FormHelperText>
 				</FormControl>
 
 				<Button type="submit" variant="contained" color="secondary">
-					Сохранить
+					Добавить бота
 				</Button>
 			</Box>
 		</Stack>
