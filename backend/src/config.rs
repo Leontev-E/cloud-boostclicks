@@ -10,8 +10,6 @@ pub struct Config {
     pub port: u16,
     pub workers: u16,
     pub channel_capacity: u16,
-    pub superuser_email: String,
-    pub superuser_pass: String,
 
     pub access_token_expire_in_secs: u32,
     pub refresh_token_expire_in_days: u16,
@@ -37,8 +35,6 @@ impl Config {
         let port = Self::get_env_var("PORT")?;
         let workers = Self::get_env_var("WORKERS")?;
         let channel_capacity = Self::get_env_var("CHANNEL_CAPACITY")?;
-        let superuser_email = Self::get_env_var("SUPERUSER_EMAIL")?;
-        let superuser_pass = Self::get_env_var("SUPERUSER_PASS")?;
         let access_token_expire_in_secs = Self::get_env_var("ACCESS_TOKEN_EXPIRE_IN_SECS")?;
         let refresh_token_expire_in_days = Self::get_env_var("REFRESH_TOKEN_EXPIRE_IN_DAYS")?;
         let secret_key = Self::get_env_var("SECRET_KEY")?;
@@ -55,8 +51,6 @@ impl Config {
             port,
             workers,
             channel_capacity,
-            superuser_email,
-            superuser_pass,
             access_token_expire_in_secs,
             refresh_token_expire_in_days,
             secret_key,

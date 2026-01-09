@@ -50,7 +50,6 @@ docker compose up -d --build
 Backend (`.env`):
 
 - `PORT`, `WORKERS`, `CHANNEL_CAPACITY`
-- `SUPERUSER_EMAIL`, `SUPERUSER_PASS`
 - `SECRET_KEY`
 - `TELEGRAM_API_BASE_URL`
 - `TELEGRAM_LOGIN_BOT_TOKEN`
@@ -176,7 +175,6 @@ docker compose up -d --build
 Backend (`.env`):
 
 - `PORT`, `WORKERS`, `CHANNEL_CAPACITY`
-- `SUPERUSER_EMAIL`, `SUPERUSER_PASS`
 - `SECRET_KEY`
 - `TELEGRAM_API_BASE_URL`
 - `TELEGRAM_LOGIN_BOT_TOKEN`

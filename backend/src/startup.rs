@@ -2,13 +2,7 @@
 
 use sqlx::PgPool;
 
-use crate::{
-    common::{db::pool::get_pool, password_manager::PasswordManager},
-    config::Config,
-    errors::CloudBoostclicksError,
-    models::users::InDBUser,
-    repositories::users::UsersRepository,
-};
+use crate::common::db::pool::get_pool;
 
 #[inline]
 pub async fn create_db(dsn: &str, dbname: &str, max_connection: u32, timeout: Duration) {
@@ -186,25 +180,3 @@ pub async fn init_db(db: &PgPool) {
 
     transaction.commit().await.unwrap();
 }
-
-#[inline]
-pub async fn create_superuser(db: &PgPool, config: &Config) {
-    let password_hash = PasswordManager::generate(&config.superuser_pass).unwrap();
-    let user = InDBUser::new(config.superuser_email.clone(), password_hash);
-    let result = UsersRepository::new(&db).create(user).await;
-
-    match result {
-        Ok(_) => tracing::debug!("created superuser"),
-
-        // ignoring conflict error -> just skipping it
-        Err(e) if matches!(e, CloudBoostclicksError::AlreadyExists(_)) => {
-            tracing::debug!("superuser already exists; skipping")
-        }
-
-        // in case of another error kind -> terminating process
-        _ => {
-            panic!("can't create superuser; terminating process")
-        }
-    };
-}
-

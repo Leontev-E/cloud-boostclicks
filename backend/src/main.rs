@@ -10,7 +10,7 @@ use crate::{
     common::{channels::ClientMessage, db::pool::get_pool, routing::app_state::AppState},
     config::Config,
     server::Server,
-    startup::{create_db, create_superuser, init_db},
+    startup::{create_db, init_db},
     storage_manager::StorageManager,
 };
 
@@ -60,9 +60,6 @@ async fn main() {
 
     // initing db
     init_db(&db).await;
-
-    // creating a superuser
-    create_superuser(&db, &config).await;
 
     // running manager
     let config_copy = config.clone();
