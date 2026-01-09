@@ -1,4 +1,4 @@
-import { useBeforeLeave, useNavigate, useParams } from '@solidjs/router'
+﻿import { useBeforeLeave, useNavigate, useParams } from '@solidjs/router'
 import { Show, createSignal, mapArray, onCleanup, onMount } from 'solid-js'
 import List from '@suid/material/List'
 import MenuItem from '@suid/material/MenuItem'
@@ -57,7 +57,7 @@ const Files = () => {
 			setUsers(users)
 			setIsGrantButtonAccessVisible(true)
 		} catch (err) {
-			addAlert('У вас нет прав на управление доступом', 'error')
+			addAlert('Не удалось загрузить доступы. Попробуйте позже.', 'error')
 			console.error(err)
 			setIsGrantButtonAccessVisible(false)
 		}
@@ -83,7 +83,6 @@ const Files = () => {
 
 	const reload = async () => {
 		if (window.location.pathname.startsWith(basePath)) {
-			console.log(window.location.pathname)
 			await fetchFSLayer()
 		}
 	}
@@ -139,15 +138,25 @@ const Files = () => {
 	 * @param {Event} event
 	 */
 	const uploadFile = async (event) => {
-		const file = event.target.files[0]
-		if (file === undefined) {
+		const files = Array.from(event.target.files || [])
+		if (!files.length) {
 			return
 		}
 
 		event.target.value = null
 
-		await API.files.uploadFile(params.id, params.path, file)
-		addAlert(`Файл "${file.name}" загружен`, 'success')
+		for (const file of files) {
+			try {
+				await API.files.uploadFile(params.id, params.path, file)
+				addAlert(`Файл "${file.name}" загружен`, 'success')
+			} catch (err) {
+				addAlert(
+					`Не удалось загрузить "${file.name}". Попробуйте еще раз.`,
+					'error'
+				)
+			}
+		}
+
 		await fetchFSLayer()
 	}
 
@@ -158,7 +167,7 @@ const Files = () => {
 					<Grid item xs={12} md={4}>
 						<Typography variant="h4">{storage()?.name}</Typography>
 						<Typography variant="body2" color="text.secondary">
-							Файлы и доступы для этого облака.
+							Файлы и папки в этом облаке.
 						</Typography>
 					</Grid>
 
@@ -203,7 +212,7 @@ const Files = () => {
 										onClick={() => setIsGrantAccessVisible(true)}
 									>
 										<AddIcon sx={{ mr: 1 }} />
-										Выдать доступ
+										Добавить доступ
 									</Fab>
 									<GrantAccess
 										isVisible={isGrantAccessVisible()}
@@ -213,7 +222,7 @@ const Files = () => {
 								</Show>
 							}
 						>
-							<Menu button_title="Создать">
+							<Menu button_title="Загрузить">
 								<MenuItem onClick={openCreateFolderDialog}>
 									<ListItemIcon>
 										<UploadFolderIcon />
@@ -224,7 +233,7 @@ const Files = () => {
 									<ListItemIcon>
 										<UploadFileIcon />
 									</ListItemIcon>
-									<ListItemText>Файл</ListItemText>
+									<ListItemText>Файлы</ListItemText>
 								</MenuItem>
 								<MenuItem
 									onClick={() => navigate(`/storages/${params.id}/upload_to`)}
@@ -232,7 +241,7 @@ const Files = () => {
 									<ListItemIcon>
 										<UploadFileIcon />
 									</ListItemIcon>
-									<ListItemText>Файл в путь</ListItemText>
+									<ListItemText>Файлы по пути</ListItemText>
 								</MenuItem>
 							</Menu>
 						</Show>
@@ -251,7 +260,10 @@ const Files = () => {
 					}
 				>
 					<Grid>
-						<Show when={fsLayer().length} fallback={<>Файлов пока нет</>}>
+						<Show
+							when={fsLayer().length}
+							fallback={<>Файлов пока нет</>}
+						>
 							<List sx={{ minWidth: 320, maxWidth: 540, mx: 'auto' }}>
 								<Divider />
 								{mapArray(fsLayer, (fsElement) => (
@@ -276,6 +288,7 @@ const Files = () => {
 					<input
 						ref={uploadFileInputElement}
 						type="file"
+						multiple
 						style="display: none"
 						onChange={uploadFile}
 					/>

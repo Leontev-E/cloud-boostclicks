@@ -27,15 +27,7 @@ impl<'t> TelegramBotApi<'t> {
         chat_id: ChatId,
         storage_id: Uuid,
     ) -> CloudBoostclicksResult<UploadSchema> {
-        let chat_id = {
-            // inserting 100 between minus sign and chat id
-            // cause telegram devs are complete retards and it works this way only
-            //
-            // https://stackoverflow.com/a/65965402/12255756
-
-            let n = chat_id.abs().checked_ilog10().unwrap_or(0) + 1;
-            chat_id - (100 * ChatId::from(10).pow(n))
-        };
+        let chat_id = Self::normalize_chat_id(chat_id);
 
         let token = self.scheduler.get_token(storage_id).await?;
         let url = self.build_url("", "sendDocument", token);
@@ -92,6 +84,18 @@ impl<'t> TelegramBotApi<'t> {
     #[inline]
     fn build_url(&self, pre: &str, relative: &str, token: String) -> String {
         format!("{}/{pre}bot{token}/{relative}", self.base_url)
+    }
+
+    #[inline]
+    fn normalize_chat_id(chat_id: ChatId) -> ChatId {
+        // For channels/supergroups Telegram expects "-100" prefix. If user already
+        // provided it (13+ digits), do not apply the prefix again.
+        if chat_id <= -1_000_000_000_000 {
+            return chat_id;
+        }
+
+        let n = chat_id.abs().checked_ilog10().unwrap_or(0) + 1;
+        chat_id - (100 * ChatId::from(10).pow(n))
     }
 }
 

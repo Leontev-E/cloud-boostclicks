@@ -1,4 +1,4 @@
-import Divider from '@suid/material/Divider'
+﻿import Divider from '@suid/material/Divider'
 import Box from '@suid/material/Box'
 import Button from '@suid/material/Button'
 import TextField from '@suid/material/TextField'
@@ -28,12 +28,27 @@ const UploadFileTo = () => {
 
 		const data = new FormData(event.currentTarget)
 
-		const path = data.get('path')
-		const file = data.get('file')
+		const rawPath = (data.get('path') || '').toString().trim()
+		const basePath = rawPath.replace(/\/+$/, '')
+		const files = data.getAll('file').filter((file) => file instanceof File)
 
-		await API.files.uploadFileTo(params.id, path, file)
+		if (!files.length) {
+			addAlert('Выберите хотя бы один файл.', 'warning')
+			return
+		}
 
-		addAlert(`Файл загружен в "${path}"`, 'success')
+		for (const file of files) {
+			const fullPath = basePath ? `${basePath}/${file.name}` : file.name
+			try {
+				await API.files.uploadFileTo(params.id, fullPath, file)
+				addAlert(`Файл "${file.name}" загружен`, 'success')
+			} catch (err) {
+				addAlert(
+					`Не удалось загрузить "${file.name}". Попробуйте еще раз.`,
+					'error'
+				)
+			}
+		}
 
 		navigateToFiles()
 	}
@@ -63,23 +78,24 @@ const UploadFileTo = () => {
 					'& > :not(style)': { my: 1.5 },
 				}}
 			>
-				<Typography variant="h5">Загрузить файл в путь</Typography>
+				<Typography variant="h5">Загрузка по пути</Typography>
 
 				<Divider />
 				<TextField
 					id="path"
 					name="path"
-					label="Путь"
+					label="Путь к папке"
 					variant="outlined"
+					helperText="Оставьте пустым для корня или укажите папку, например: документы/"
 					fullWidth
-					required
 				/>
 				<TextField
 					id="file"
 					name="file"
-					label="Файл"
+					label="Файлы"
 					type="file"
 					variant="outlined"
+					inputProps={{ multiple: true }}
 					fullWidth
 					required
 				/>
