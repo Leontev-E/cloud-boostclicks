@@ -1,12 +1,5 @@
 import { useParams } from '@solidjs/router'
-import {
-	For,
-	Show,
-	createEffect,
-	createSignal,
-	onCleanup,
-	onMount,
-} from 'solid-js'
+import { For, Show, createSignal, onCleanup, onMount } from 'solid-js'
 import Box from '@suid/material/Box'
 import Button from '@suid/material/Button'
 import CircularProgress from '@suid/material/CircularProgress'
@@ -65,6 +58,54 @@ const Share = () => {
 		setPreviewStatus('idle')
 	}
 
+	const startPreview = (name) => {
+		resetPreview()
+		setPreviewStatus('loading')
+
+		const ext = getExtension(name)
+		if (officeExtensions.has(ext)) {
+			const downloadUrl = `${window.location.origin}/api/shares/${params.id}/download`
+			setPreviewType('office')
+			setPreviewUrl(
+				`https://view.officeapps.live.com/op/embed.aspx?src=${encodeURIComponent(
+					downloadUrl
+				)}`
+			)
+			setPreviewStatus('ready')
+			return
+		}
+
+		let canceled = false
+
+		API.shares
+			.downloadShared(params.id)
+			.then(async (blob) => {
+				if (canceled) return
+				const mode = getPreviewMode(blob.type, name)
+				setPreviewType(mode)
+
+				if (mode === 'text') {
+					const text = await blob.text()
+					if (canceled) return
+					setPreviewText(text)
+				} else if (mode !== 'unsupported') {
+					const url = URL.createObjectURL(blob)
+					setPreviewUrl(url)
+				}
+
+				setPreviewStatus('ready')
+			})
+			.catch(() => {
+				if (!canceled) {
+					setPreviewStatus('error')
+				}
+			})
+
+		onCleanup(() => {
+			canceled = true
+		})
+	}
+
 	const fetchShare = async () => {
 		try {
 			const info = await API.shares.getShare(params.id)
@@ -73,6 +114,8 @@ const Share = () => {
 			if (info.is_folder) {
 				const list = await API.shares.listSharedFolder(params.id)
 				setItems(list || [])
+			} else {
+				startPreview(info.name)
 			}
 
 			setStatus('ready')
@@ -116,58 +159,6 @@ const Share = () => {
 			addAlert('Не удалось скачать папку', 'error')
 		}
 	}
-
-	createEffect(() => {
-		if (!share() || share().is_folder) {
-			resetPreview()
-			return
-		}
-
-		let canceled = false
-		resetPreview()
-		setPreviewStatus('loading')
-
-		const ext = getExtension(share().name)
-		if (officeExtensions.has(ext)) {
-			const downloadUrl = `${window.location.origin}/api/shares/${params.id}/download`
-			setPreviewType('office')
-			setPreviewUrl(
-				`https://view.officeapps.live.com/op/embed.aspx?src=${encodeURIComponent(
-					downloadUrl
-				)}`
-			)
-			setPreviewStatus('ready')
-			return
-		}
-
-		API.shares
-			.downloadShared(params.id)
-			.then(async (blob) => {
-				if (canceled) return
-				const mode = getPreviewMode(blob.type, share().name)
-				setPreviewType(mode)
-
-				if (mode === 'text') {
-					const text = await blob.text()
-					if (canceled) return
-					setPreviewText(text)
-				} else if (mode !== 'unsupported') {
-					const url = URL.createObjectURL(blob)
-					setPreviewUrl(url)
-				}
-
-				setPreviewStatus('ready')
-			})
-			.catch(() => {
-				if (!canceled) {
-					setPreviewStatus('error')
-				}
-			})
-
-		onCleanup(() => {
-			canceled = true
-		})
-	})
 
 	onMount(fetchShare)
 
@@ -285,9 +276,7 @@ const Share = () => {
 								</Box>
 							</Show>
 
-							<Show
-								when={previewStatus() === 'ready' && previewType() === 'office'}
-							>
+							<Show when={previewStatus() === 'ready' && previewType() === 'office'}>
 								<iframe
 									src={previewUrl()}
 									title="Office preview"
