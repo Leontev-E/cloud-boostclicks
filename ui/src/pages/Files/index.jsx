@@ -182,9 +182,11 @@ const Files = () => {
 			form.append('path', path)
 
 			const [store] = createLocalStore()
+			const apiBase = import.meta.env.VITE_API_BASE || '/api'
 			const xhr = new XMLHttpRequest()
-			xhr.open('POST', `${import.meta.env.VITE_API_BASE || 'http://localhost:8000/api'}/storages/${storageId}/files/upload`)
+			xhr.open('POST', `${apiBase}/storages/${storageId}/files/upload`)
 			xhr.setRequestHeader('Authorization', `Bearer ${store.access_token}`)
+			xhr.timeout = 0
 			xhr.upload.onprogress = (e) => {
 				if (e.lengthComputable && typeof onProgress === 'function') {
 					onProgress(e.loaded)
@@ -198,6 +200,7 @@ const Files = () => {
 				}
 			}
 			xhr.onerror = () => reject(new Error('upload failed'))
+			xhr.ontimeout = () => reject(new Error('upload timeout'))
 			xhr.send(form)
 		})
 
