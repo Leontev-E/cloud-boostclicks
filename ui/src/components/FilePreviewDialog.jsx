@@ -98,7 +98,7 @@ const FilePreviewDialog = (props) => {
 						  })
 
 				const mode = getPreviewMode(effectiveBlob.type || '', props.file.name)
-				setFileType(mode)
+				setFileType(mode || 'unsupported')
 
 				if (mode === 'text') {
 					const text = await effectiveBlob.text()
@@ -113,7 +113,8 @@ const FilePreviewDialog = (props) => {
 			})
 			.catch(() => {
 				if (!canceled) {
-					setStatus('error')
+					setFileType('unsupported')
+					setStatus('ready')
 				}
 			})
 

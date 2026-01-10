@@ -20,6 +20,7 @@ import CreateFolderDialog from '../../components/CreateFolderDialog'
 import { alertStore } from '../../components/AlertStack'
 import FilePreviewDialog from '../../components/FilePreviewDialog'
 import { checkAuth } from '../../common/auth_guard'
+import createLocalStore from '../../../libs'
 
 const Files = () => {
 	const { addAlert } = alertStore
@@ -35,6 +36,7 @@ const Files = () => {
 		createSignal(false)
 	const [previewFile, setPreviewFile] = createSignal()
 	const [isUploading, setIsUploading] = createSignal(false)
+	const [uploadProgress, setUploadProgress] = createSignal(0)
 	const navigate = useNavigate()
 	const params = useParams()
 	const basePath = `/storages/${params.id}/files`
@@ -141,11 +143,18 @@ const Files = () => {
 		event.target.value = null
 		const currentPath = getCurrentPath()
 		setIsUploading(true)
+		setUploadProgress(0)
+		const totalSize = files.reduce((sum, f) => sum + f.size, 0) || 1
+		let uploaded = 0
 
 		try {
 			for (const file of files) {
 				try {
-					await API.files.uploadFile(params.id, currentPath, file)
+					await uploadWithProgress(params.id, currentPath, file, (loaded) => {
+						const delta = loaded - uploaded
+						uploaded += delta
+						setUploadProgress(Math.min(100, Math.round((uploaded / totalSize) * 100)))
+					})
 					addAlert(`Файл "${file.name}" загружен`, 'success')
 				} catch (err) {
 					addAlert(
@@ -157,8 +166,35 @@ const Files = () => {
 			await fetchFSLayer()
 		} finally {
 			setIsUploading(false)
+			setUploadProgress(0)
 		}
 	}
+
+	const uploadWithProgress = (storageId, path, file, onProgress) =>
+		new Promise((resolve, reject) => {
+			const form = new FormData()
+			form.append('file', file)
+			form.append('path', path)
+
+			const [store] = createLocalStore()
+			const xhr = new XMLHttpRequest()
+			xhr.open('POST', `${import.meta.env.VITE_API_BASE || 'http://localhost:8000/api'}/storages/${storageId}/files/upload`)
+			xhr.setRequestHeader('Authorization', `Bearer ${store.access_token}`)
+			xhr.upload.onprogress = (e) => {
+				if (e.lengthComputable && typeof onProgress === 'function') {
+					onProgress(uploaded + e.loaded)
+				}
+			}
+			xhr.onload = () => {
+				if (xhr.status >= 200 && xhr.status < 300) {
+					resolve()
+				} else {
+					reject(new Error(xhr.responseText || 'upload failed'))
+				}
+			}
+			xhr.onerror = () => reject(new Error('upload failed'))
+			xhr.send(form)
+		})
 
 	const openPreview = (file) => {
 		setPreviewFile(file)
@@ -230,6 +266,14 @@ const Files = () => {
 						}
 					>
 						<List sx={{ minWidth: 320, maxWidth: 540, mx: 'auto' }}>
+							<Show when={isUploading()}>
+								<Box sx={{ px: 2, pb: 1 }}>
+									<LinearProgress variant="determinate" value={uploadProgress()} />
+									<Typography variant="caption" color="text.secondary">
+										Загрузка файлов в облако: {uploadProgress()}%
+									</Typography>
+								</Box>
+							</Show>
 							<Divider />
 							{mapArray(fsLayer, (fsElement) => (
 								<>

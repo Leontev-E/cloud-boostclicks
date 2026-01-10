@@ -12,12 +12,14 @@ import LinearProgress from '@suid/material/LinearProgress'
 import API from '../../api'
 import { alertStore } from '../../components/AlertStack'
 import { checkAuth } from '../../common/auth_guard'
+import createLocalStore from '../../../libs'
 
 const UploadFileTo = () => {
 	const { addAlert } = alertStore
 	const navigate = useNavigate()
 	const params = useParams()
 	const [isUploading, setIsUploading] = createSignal(false)
+	const [uploadProgress, setUploadProgress] = createSignal(0)
 	onMount(checkAuth)
 
 	const navigateToFiles = () => {
@@ -43,11 +45,18 @@ const UploadFileTo = () => {
 		}
 
 		setIsUploading(true)
+		setUploadProgress(0)
+		const totalSize = files.reduce((sum, f) => sum + f.size, 0) || 1
+		let uploaded = 0
 		try {
 			for (const file of files) {
 				const fullPath = basePath ? `${basePath}/${file.name}` : file.name
 				try {
-					await API.files.uploadFileTo(params.id, fullPath, file)
+					await uploadWithProgress(params.id, fullPath, file, (loaded) => {
+						const delta = loaded - uploaded
+						uploaded += delta
+						setUploadProgress(Math.min(100, Math.round((uploaded / totalSize) * 100)))
+					})
 					addAlert(`Файл "${file.name}" загружен`, 'success')
 				} catch (err) {
 					addAlert(
@@ -59,8 +68,35 @@ const UploadFileTo = () => {
 			navigateToFiles()
 		} finally {
 			setIsUploading(false)
+			setUploadProgress(0)
 		}
 	}
+
+	const uploadWithProgress = (storageId, fullPath, file, onProgress) =>
+		new Promise((resolve, reject) => {
+			const form = new FormData()
+			form.append('file', file)
+			form.append('path', fullPath)
+
+			const [store] = createLocalStore()
+			const xhr = new XMLHttpRequest()
+			xhr.open('POST', `${import.meta.env.VITE_API_BASE || 'http://localhost:8000/api'}/storages/${storageId}/files/upload_to`)
+			xhr.setRequestHeader('Authorization', `Bearer ${store.access_token}`)
+			xhr.upload.onprogress = (e) => {
+				if (e.lengthComputable && typeof onProgress === 'function') {
+					onProgress(uploaded + e.loaded)
+				}
+			}
+			xhr.onload = () => {
+				if (xhr.status >= 200 && xhr.status < 300) {
+					resolve()
+				} else {
+					reject(new Error(xhr.responseText || 'upload failed'))
+				}
+			}
+			xhr.onerror = () => reject(new Error('upload failed'))
+			xhr.send(form)
+		})
 
 	return (
 		<Stack sx={{ maxWidth: 540, minWidth: 320, mx: 'auto' }}>
@@ -109,6 +145,13 @@ const UploadFileTo = () => {
 					fullWidth
 					required
 				/>
+				{isUploading() ? (
+					<LinearProgress
+						variant="determinate"
+						value={uploadProgress()}
+						sx={{ width: '100%' }}
+					/>
+				) : null}
 				<Button type="submit" variant="contained" color="secondary">
 					Загрузить
 				</Button>

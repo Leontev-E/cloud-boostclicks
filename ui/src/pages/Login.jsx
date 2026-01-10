@@ -44,6 +44,7 @@ const Login = (props) => {
 	const navigate = useNavigate()
 	let telegramRoot
 	const isRegister = () => mode() === 'register'
+	let formRef
 
 	const handleTelegramAuth = async (user) => {
 		try {
@@ -269,7 +270,7 @@ const Login = (props) => {
 								<Divider>
 									{isRegister() ? 'или зарегистрируйтесь' : 'или войдите по почте'}
 								</Divider>
-								<Box component="form" onSubmit={handleSubmit}>
+								<Box component="form" onSubmit={handleSubmit} ref={(el) => (formRef = el)}>
 									<Stack spacing={2}>
 										<TextField
 											name="email"
@@ -512,10 +513,23 @@ const Login = (props) => {
 									Создайте облако через Telegram, подключите бота и начните загрузку файлов.
 								</Typography>
 								<Stack direction="row" spacing={2} justifyContent="center">
-									<Button variant="contained" color="secondary" onClick={() => navigate('/login')}>
+									<Button
+										variant="contained"
+										color="secondary"
+										onClick={() => {
+											setMode('login')
+											telegramRoot?.scrollIntoView({ behavior: 'smooth', block: 'center' })
+										}}
+									>
 										Начать с Telegram
 									</Button>
-									<Button variant="outlined" onClick={() => navigate('/storages')}>
+									<Button
+										variant="outlined"
+										onClick={() => {
+											setMode('register')
+											formRef?.scrollIntoView({ behavior: 'smooth', block: 'center' })
+										}}
+									>
 										Создать облако сейчас
 									</Button>
 								</Stack>
@@ -527,7 +541,10 @@ const Login = (props) => {
 			<Fab
 				variant="extended"
 				color="secondary"
-				onClick={() => navigate('/storages/register')}
+				onClick={() => {
+					setMode('register')
+					formRef?.scrollIntoView({ behavior: 'smooth', block: 'center' })
+				}}
 				sx={{
 					position: 'fixed',
 					bottom: 24,
