@@ -29,7 +29,8 @@ impl<'d> StorageManagerService<'d> {
     pub fn new(db: &'d PgPool, telegram_baseurl: &'d str, rate_limit: u8) -> Self {
         let files_repo = FilesRepository::new(db);
         let storages_repo = StoragesRepository::new(db);
-        let chunk_size = 20 * 1024 * 1024;
+        // 8 MB chunks: надёжнее для Telegram Bot API (лимит ~50 MB на запрос)
+        let chunk_size = 8 * 1024 * 1024;
         Self {
             storages_repo,
             files_repo,
@@ -47,27 +48,23 @@ impl<'d> StorageManagerService<'d> {
         // 2. dividing file into chunks
         let bytes_chunks = data.file_data.chunks(self.chunk_size);
 
-        // 3. uploading by chunks
-        let futures_: Vec<_> = bytes_chunks
-            .enumerate()
-            .map(|(position, bytes_chunk)| {
-                self.upload_chunk(
+        // 3. uploading by chunks (последовательно, чтобы избежать rate-limit/timeout)
+        let mut uploaded_chunks = Vec::new();
+        for (position, bytes_chunk) in bytes_chunks.enumerate() {
+            let chunk = self
+                .upload_chunk(
                     storage.id,
                     storage.chat_id,
                     data.file_id,
                     position,
                     bytes_chunk,
                 )
-            })
-            .collect();
-
-        let chunks = join_all(futures_)
-            .await
-            .into_iter()
-            .collect::<CloudBoostclicksResult<Vec<_>>>()?;
+                .await?;
+            uploaded_chunks.push(chunk);
+        }
 
         // 4. saving chunks to db
-        self.files_repo.create_chunks_batch(chunks).await
+        self.files_repo.create_chunks_batch(uploaded_chunks).await
     }
 
     async fn upload_chunk(
