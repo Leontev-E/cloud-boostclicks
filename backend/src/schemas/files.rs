@@ -2,7 +2,7 @@
 use serde::{Deserialize, Serialize};
 use uuid::Uuid;
 
-use crate::{common::types::Position, models::files::File};
+use crate::common::types::Position;
 
 #[derive(Deserialize)]
 pub struct UploadParams {

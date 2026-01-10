@@ -234,12 +234,13 @@ impl FilesRouter {
             .await
             .map(|data| {
                 let folder_name = if path.is_empty() {
-                    "cloud"
+                    "cloud".to_string()
                 } else {
-                    Path::new(&path.trim_end_matches('/'))
+                    let trimmed = path.trim_end_matches('/');
+                    Path::new(trimmed)
                         .file_name()
-                        .map(|name| name.to_str().unwrap_or_default())
-                        .unwrap_or("folder")
+                        .map(|name| name.to_str().unwrap_or("folder").to_string())
+                        .unwrap_or_else(|| "folder".to_string())
                 };
 
                 let bytes = Bytes::from(data);
