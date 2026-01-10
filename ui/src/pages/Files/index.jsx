@@ -151,6 +151,11 @@ const Files = () => {
 
 		try {
 			for (const file of files) {
+				// финальный путь включает имя файла (без трailing slash)
+				const basePath = currentPath
+					? currentPath.replace(/\\/g, '/').replace(/\/+$/, '')
+					: ''
+				const targetPath = basePath ? `${basePath}/${file.name}` : file.name
 				let fileId
 				let offset = 0
 				const totalChunks = Math.ceil(file.size / chunkSize)
@@ -163,7 +168,7 @@ const Files = () => {
 					try {
 						const res = await API.files.uploadFileChunked(
 							params.id,
-							currentPath,
+							targetPath,
 							chunk,
 							chunkIndex,
 							totalChunks,
