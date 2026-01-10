@@ -150,23 +150,49 @@ const Files = () => {
 
 		try {
 			for (const file of files) {
-				try {
+				let fileId
+				const chunkSize = 8 * 1024 * 1024
+				let offset = 0
+				const totalChunks = Math.ceil(file.size / chunkSize)
+
+				while (offset < file.size) {
+					const chunk = file.slice(offset, offset + chunkSize)
+					const chunkIndex = Math.floor(offset / chunkSize)
 					let prevLoaded = 0
-					await uploadWithProgress(params.id, currentPath, file, (loaded) => {
-						const delta = loaded - prevLoaded
-						prevLoaded = loaded
-						uploaded += delta
-						setUploadProgress(
-							Math.min(100, Math.round((uploaded / totalSize) * 100))
+
+					try {
+						const res = await API.files.uploadFileChunked(
+							params.id,
+							currentPath,
+							chunk,
+							chunkIndex,
+							totalChunks,
+							fileId,
+							file.size,
+							(loaded) => {
+								const delta = loaded - prevLoaded
+								prevLoaded = loaded
+								setUploadProgress(
+									Math.min(
+										100,
+										Math.round(
+											((uploaded + offset + loaded) / totalSize) * 100
+										)
+									)
+								)
+							}
 						)
-					})
-					addAlert(`Файл "${file.name}" загружен`, 'success')
-				} catch (err) {
-					addAlert(
-						`Не удалось загрузить "${file.name}". Попробуйте еще раз.`,
-						'error'
-					)
+						if (typeof res === 'string') fileId = res
+						else if (res?.file_id) fileId = res.file_id
+					} catch (err) {
+						throw err
+					}
+
+					uploaded += chunk.size
+					offset += chunkSize
 				}
+
+				addAlert(`Файл "${file.name}" загружен`, 'success')
 			}
 			await fetchFSLayer()
 		} finally {
@@ -174,35 +200,6 @@ const Files = () => {
 			setUploadProgress(0)
 		}
 	}
-
-	const uploadWithProgress = (storageId, path, file, onProgress) =>
-		new Promise((resolve, reject) => {
-			const form = new FormData()
-			form.append('file', file)
-			form.append('path', path)
-
-			const [store] = createLocalStore()
-			const apiBase = import.meta.env.VITE_API_BASE || '/api'
-			const xhr = new XMLHttpRequest()
-			xhr.open('POST', `${apiBase}/storages/${storageId}/files/upload`)
-			xhr.setRequestHeader('Authorization', `Bearer ${store.access_token}`)
-			xhr.timeout = 0
-			xhr.upload.onprogress = (e) => {
-				if (e.lengthComputable && typeof onProgress === 'function') {
-					onProgress(e.loaded)
-				}
-			}
-			xhr.onload = () => {
-				if (xhr.status >= 200 && xhr.status < 300) {
-					resolve()
-				} else {
-					reject(new Error(xhr.responseText || 'upload failed'))
-				}
-			}
-			xhr.onerror = () => reject(new Error('upload failed'))
-			xhr.ontimeout = () => reject(new Error('upload timeout'))
-			xhr.send(form)
-		})
 
 	const openPreview = (file) => {
 		setPreviewFile(file)

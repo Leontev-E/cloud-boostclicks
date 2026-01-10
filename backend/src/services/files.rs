@@ -4,6 +4,7 @@ use tokio::sync::oneshot;
 use uuid::Uuid;
 
 use crate::{
+    config::Config,
     common::{
         access::check_access,
         channels::{
@@ -20,27 +21,33 @@ use crate::{
     },
     repositories::{
         access::AccessRepository, files::FilesRepository, storage_workers::StorageWorkersRepository,
+        storages::StoragesRepository,
     },
     schemas::files::{InFileSchema, InFolderSchema},
 };
 use crate::schemas::files::DeleteSummary;
+use crate::storage_manager::StorageManagerService;
 
 pub struct FilesService<'d> {
+    db: &'d PgPool,
     repo: FilesRepository<'d>,
     storage_workers_repo: StorageWorkersRepository<'d>,
     access_repo: AccessRepository<'d>,
+    config: Config,
     tx: ClientSender,
 }
 
 impl<'d> FilesService<'d> {
-    pub fn new(db: &'d PgPool, tx: ClientSender) -> Self {
+    pub fn new(db: &'d PgPool, config: crate::config::Config, tx: ClientSender) -> Self {
         let repo = FilesRepository::new(db);
         let storage_workers_repo = StorageWorkersRepository::new(db);
         let access_repo = AccessRepository::new(db);
         Self {
+            db,
             repo,
             access_repo,
             storage_workers_repo,
+            config,
             tx,
         }
     }
@@ -168,6 +175,53 @@ impl<'d> FilesService<'d> {
         };
 
         Ok(())
+    }
+
+    pub async fn upload_chunked(
+        &self,
+        storage_id: Uuid,
+        path: String,
+        size: Option<i64>,
+        file_id: Option<Uuid>,
+        chunk_index: usize,
+        total_chunks: usize,
+        chunk_data: Bytes,
+        user: &AuthUser,
+    ) -> CloudBoostclicksResult<Uuid> {
+        // check access
+        check_access(&self.access_repo, user.id, storage_id, &AccessType::W).await?;
+        // workers check
+        Self::check_storage_workers(&self, storage_id).await?;
+
+        if !Self::validate_filepath(&path) {
+            return Err(CloudBoostclicksError::InvalidPath);
+        }
+
+        // create file once
+        let file_id = match file_id {
+            Some(id) => id,
+            None => {
+                let file_size = size.unwrap_or(chunk_data.len() as i64);
+                let in_file = InFile::new(path.clone(), file_size, storage_id);
+                self.repo.create_file(in_file).await?.id
+            }
+        };
+
+        // upload chunk directly to Telegram via StorageManagerService
+        let storage = StoragesRepository::new(self.db).get_by_id(storage_id).await?;
+        let storage_manager =
+            StorageManagerService::new(self.db, &self.config.telegram_api_base_url, self.config.telegram_rate_limit);
+        let chunk = storage_manager
+            .upload_chunk(storage.id, storage.chat_id, file_id, chunk_index, &chunk_data)
+            .await?;
+
+        self.repo.create_chunks_batch(vec![chunk]).await?;
+
+        if chunk_index + 1 == total_chunks {
+            self.repo.set_as_uploaded(file_id).await?;
+        }
+
+        Ok(file_id)
     }
 
     async fn check_storage_workers(&self, storage_id: Uuid) -> CloudBoostclicksResult<()> {

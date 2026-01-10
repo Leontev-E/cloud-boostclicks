@@ -244,6 +244,56 @@ const uploadFile = async (storage_id, path, file) => {
 	)
 }
 
+const uploadFileChunked = (
+	storage_id,
+	path,
+	chunk,
+	chunkIndex,
+	totalChunks,
+	existingFileId,
+	totalSize,
+	onProgress
+) =>
+	new Promise((resolve, reject) => {
+		const form = new FormData()
+		form.append('chunk', chunk)
+		form.append('path', path)
+		form.append('chunk_index', String(chunkIndex))
+		form.append('total_chunks', String(totalChunks))
+		if (existingFileId) {
+			form.append('file_id', existingFileId)
+		}
+		if (chunkIndex === 0) {
+			form.append('size', String(totalSize || chunk.size || chunk.length || 0))
+		}
+
+		const xhr = new XMLHttpRequest()
+		const apiBase = import.meta.env.VITE_API_BASE || '/api'
+		xhr.open('POST', `${apiBase}/storages/${storage_id}/files/upload_chunked`)
+		xhr.setRequestHeader('Authorization', getAuthToken())
+		xhr.timeout = 0
+		xhr.upload.onprogress = (e) => {
+			if (e.lengthComputable && typeof onProgress === 'function') {
+				onProgress(e.loaded)
+			}
+		}
+		xhr.onload = () => {
+			if (xhr.status >= 200 && xhr.status < 300) {
+				try {
+					const data = JSON.parse(xhr.responseText || '{}')
+					resolve(data)
+				} catch (err) {
+					resolve({})
+				}
+			} else {
+				reject(new Error(xhr.responseText || 'upload failed'))
+			}
+		}
+		xhr.onerror = () => reject(new Error('upload failed'))
+		xhr.ontimeout = () => reject(new Error('upload timeout'))
+		xhr.send(form)
+	})
+
 /**
  *
  * @param {string} storage_id
@@ -507,6 +557,7 @@ const API = {
 	files: {
 		createFolder,
 		uploadFile,
+		uploadFileChunked,
 		uploadFileTo,
 		getFSLayer,
 		download,

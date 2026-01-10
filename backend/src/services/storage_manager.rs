@@ -67,7 +67,7 @@ impl<'d> StorageManagerService<'d> {
         self.files_repo.create_chunks_batch(uploaded_chunks).await
     }
 
-    async fn upload_chunk(
+    pub async fn upload_chunk(
         &self,
         storage_id: Uuid,
         chat_id: ChatId,

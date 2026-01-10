@@ -51,23 +51,48 @@ const UploadFileTo = () => {
 		try {
 			for (const file of files) {
 				const fullPath = basePath ? `${basePath}/${file.name}` : file.name
-				try {
+				const chunkSize = 8 * 1024 * 1024
+				let offset = 0
+				const totalChunks = Math.ceil(file.size / chunkSize)
+				let fileId
+
+				while (offset < file.size) {
+					const chunk = file.slice(offset, offset + chunkSize)
+					const chunkIndex = Math.floor(offset / chunkSize)
 					let prevLoaded = 0
-					await uploadWithProgress(params.id, fullPath, file, (loaded) => {
-						const delta = loaded - prevLoaded
-						prevLoaded = loaded
-						uploaded += delta
-						setUploadProgress(
-							Math.min(100, Math.round((uploaded / totalSize) * 100))
+					try {
+						const res = await uploadWithProgress(
+							params.id,
+							fullPath,
+							chunk,
+							chunkIndex,
+							totalChunks,
+							fileId,
+							file.size,
+							(loaded) => {
+								const delta = loaded - prevLoaded
+								prevLoaded = loaded
+								setUploadProgress(
+									Math.min(
+										100,
+										Math.round(
+											((uploaded + offset + loaded) / totalSize) * 100
+										)
+									)
+								)
+							}
 						)
-					})
-					addAlert(`Файл "${file.name}" загружен`, 'success')
-				} catch (err) {
-					addAlert(
-						`Не удалось загрузить "${file.name}". Попробуйте еще раз.`,
-						'error'
-					)
+						if (typeof res === 'string') fileId = res
+						else if (res?.file_id) fileId = res.file_id
+					} catch (err) {
+						throw err
+					}
+
+					uploaded += chunk.size
+					offset += chunkSize
 				}
+
+				addAlert(`Файл "${file.name}" загружен`, 'success')
 			}
 			navigateToFiles()
 		} finally {
@@ -76,16 +101,29 @@ const UploadFileTo = () => {
 		}
 	}
 
-	const uploadWithProgress = (storageId, fullPath, file, onProgress) =>
+	const uploadWithProgress = (
+		storageId,
+		fullPath,
+		chunk,
+		chunkIndex,
+		totalChunks,
+		fileId,
+		totalSize,
+		onProgress
+	) =>
 		new Promise((resolve, reject) => {
 			const form = new FormData()
-			form.append('file', file)
+			form.append('chunk', chunk)
 			form.append('path', fullPath)
+			form.append('chunk_index', String(chunkIndex))
+			form.append('total_chunks', String(totalChunks))
+			if (fileId) form.append('file_id', fileId)
+			if (chunkIndex === 0) form.append('size', String(totalSize || chunk.size || 0))
 
 			const [store] = createLocalStore()
 			const apiBase = import.meta.env.VITE_API_BASE || '/api'
 			const xhr = new XMLHttpRequest()
-			xhr.open('POST', `${apiBase}/storages/${storageId}/files/upload_to`)
+			xhr.open('POST', `${apiBase}/storages/${storageId}/files/upload_chunked`)
 			xhr.setRequestHeader('Authorization', `Bearer ${store.access_token}`)
 			xhr.timeout = 0
 			xhr.upload.onprogress = (e) => {

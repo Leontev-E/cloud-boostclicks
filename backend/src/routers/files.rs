@@ -10,6 +10,7 @@ use axum::{
     Extension, Json, Router,
 };
 use reqwest::header;
+use serde_json::json;
 use tokio_util::bytes::Bytes;
 use uuid::Uuid;
 
@@ -43,6 +44,7 @@ impl FilesRouter {
             .route("/create_folder", post(Self::create_folder))
             .route("/upload", post(Self::upload))
             .route("/upload_to", post(Self::upload_to))
+            .route("/upload_chunked", post(Self::upload_chunked))
             .route("/*path", get(Self::dynamic_get).delete(Self::delete))
             .layer(DefaultBodyLimit::disable())
             .route_layer(middleware::from_fn_with_state(
@@ -83,7 +85,7 @@ impl FilesRouter {
         storage_id: Uuid,
         path: &str,
     ) -> Result<Response, (StatusCode, String)> {
-        let fs_layer = FilesService::new(&state.db, state.tx.clone())
+        let fs_layer = FilesService::new(&state.db, state.config.clone(), state.tx.clone())
             .list_dir(storage_id, path, &user)
             .await?;
         Ok(Json(fs_layer).into_response())
@@ -125,7 +127,7 @@ impl FilesRouter {
         let size = file.len() as i64;
         let in_file = InFile::new(path, size, storage_id);
 
-        FilesService::new(&state.db, state.tx.clone())
+        FilesService::new(&state.db, state.config.clone(), state.tx.clone())
             .upload_anyway(in_file, file, &user)
             .await?;
         Ok(StatusCode::CREATED)
@@ -165,11 +167,84 @@ impl FilesRouter {
         };
 
         // do all other stuff
-        FilesService::new(&state.db, state.tx.clone())
+        FilesService::new(&state.db, state.config.clone(), state.tx.clone())
             .upload_to(in_schema, &user)
             .await?;
 
         Ok(StatusCode::CREATED)
+    }
+
+    async fn upload_chunked(
+        State(state): State<Arc<AppState>>,
+        Extension(user): Extension<AuthUser>,
+        RoutePath(storage_id): RoutePath<Uuid>,
+        mut multipart: Multipart,
+    ) -> Result<Json<Uuid>, (StatusCode, String)> {
+        let mut path: Option<String> = None;
+        let mut size: Option<i64> = None;
+        let mut file_id: Option<Uuid> = None;
+        let mut chunk_index: Option<usize> = None;
+        let mut total_chunks: Option<usize> = None;
+        let mut chunk: Option<Bytes> = None;
+
+        while let Some(field) = multipart.next_field().await.unwrap() {
+            let name = field.name().unwrap().to_string();
+            let data = field.bytes().await.unwrap();
+
+            match name.as_str() {
+                "path" => path = Some(String::from_utf8(data.to_vec()).unwrap_or_default()),
+                "size" => size = String::from_utf8(data.to_vec())
+                    .ok()
+                    .and_then(|s| s.parse::<i64>().ok()),
+                "file_id" => {
+                    file_id = String::from_utf8(data.to_vec())
+                        .ok()
+                        .and_then(|s| Uuid::parse_str(&s).ok())
+                }
+                "chunk_index" => {
+                    chunk_index = String::from_utf8(data.to_vec())
+                        .ok()
+                        .and_then(|s| s.parse::<usize>().ok())
+                }
+                "total_chunks" => {
+                    total_chunks = String::from_utf8(data.to_vec())
+                        .ok()
+                        .and_then(|s| s.parse::<usize>().ok())
+                }
+                "chunk" | "file" => chunk = Some(data),
+                _ => {}
+            }
+        }
+
+        let path = path.ok_or((StatusCode::BAD_REQUEST, "path обязателен".to_owned()))?;
+        let chunk_index =
+            chunk_index.ok_or((StatusCode::BAD_REQUEST, "chunk_index обязателен".to_owned()))?;
+        let total_chunks =
+            total_chunks.ok_or((StatusCode::BAD_REQUEST, "total_chunks обязателен".to_owned()))?;
+        let chunk = chunk.ok_or((StatusCode::BAD_REQUEST, "chunk обязателен".to_owned()))?;
+
+        if chunk_index >= total_chunks {
+            return Err((
+                StatusCode::BAD_REQUEST,
+                "chunk_index должен быть меньше total_chunks".to_owned(),
+            ));
+        }
+
+        let file_id = FilesService::new(&state.db, state.config.clone(), state.tx.clone())
+            .upload_chunked(
+                storage_id,
+                path,
+                size,
+                file_id,
+                chunk_index,
+                total_chunks,
+                chunk,
+                &user,
+            )
+            .await
+            .map_err(|e| <(StatusCode, String)>::from(e))?;
+
+        Ok(Json(json!({ "file_id": file_id })))
     }
 
     async fn create_folder(
@@ -180,7 +255,7 @@ impl FilesRouter {
     ) -> Result<StatusCode, (StatusCode, String)> {
         let in_schema = InFolderSchema::new(storage_id, params.path, params.folder_name);
 
-        FilesService::new(&state.db, state.tx.clone())
+        FilesService::new(&state.db, state.config.clone(), state.tx.clone())
             .create_folder(in_schema, &user)
             .await?;
         Ok(StatusCode::CREATED)
@@ -201,7 +276,7 @@ impl FilesRouter {
         storage_id: Uuid,
         path: &str,
     ) -> Result<Response, (StatusCode, String)> {
-        FilesService::new(&state.db, state.tx.clone())
+        FilesService::new(&state.db, state.config.clone(), state.tx.clone())
             .download(path, storage_id, &user)
             .await
             .map(|data| {
@@ -234,7 +309,7 @@ impl FilesRouter {
         storage_id: Uuid,
         path: &str,
     ) -> Result<Response, (StatusCode, String)> {
-        FilesService::new(&state.db, state.tx.clone())
+        FilesService::new(&state.db, state.config.clone(), state.tx.clone())
             .download_folder(path, storage_id, &user)
             .await
             .map(|data| {
@@ -273,7 +348,7 @@ impl FilesRouter {
         path: &str,
         search_path: &str,
     ) -> Result<Response, (StatusCode, String)> {
-        FilesService::new(&state.db, state.tx.clone())
+        FilesService::new(&state.db, state.config.clone(), state.tx.clone())
             .search(storage_id, path, search_path, &user)
             .await
             .map(|files| Json(files).into_response())
@@ -285,7 +360,7 @@ impl FilesRouter {
         Extension(user): Extension<AuthUser>,
         RoutePath((storage_id, path)): RoutePath<(Uuid, String)>,
     ) -> Result<Json<DeleteSummary>, (StatusCode, String)> {
-        let result = FilesService::new(&state.db, state.tx.clone())
+        let result = FilesService::new(&state.db, state.config.clone(), state.tx.clone())
             .delete(&path, storage_id, &user)
             .await
             .map_err(|e| <(StatusCode, String)>::from(e))?;
