@@ -4,6 +4,7 @@ import DialogTitle from '@suid/material/DialogTitle'
 import CircularProgress from '@suid/material/CircularProgress'
 import Typography from '@suid/material/Typography'
 import Box from '@suid/material/Box'
+import Button from '@suid/material/Button'
 import { createEffect, createSignal, onCleanup, Show } from 'solid-js'
 
 import API from '../api'
@@ -45,6 +46,16 @@ const FilePreviewDialog = (props) => {
 		}
 	}
 
+	const guessMime = (name) => {
+		const ext = getExtension(name)
+		if (imageExtensions.has(ext)) return 'image/' + (ext === 'svg' ? 'svg+xml' : 'jpeg')
+		if (videoExtensions.has(ext)) return 'video/mp4'
+		if (audioExtensions.has(ext)) return 'audio/mpeg'
+		if (ext === 'pdf') return 'application/pdf'
+		if (textExtensions.has(ext)) return 'text/plain'
+		return 'application/octet-stream'
+	}
+
 	const getPreviewMode = (blobType, name) => {
 		const ext = getExtension(name)
 		if (officeExtensions.has(ext)) return 'office'
@@ -77,21 +88,24 @@ const FilePreviewDialog = (props) => {
 		API.files
 			.download(props.storageId, props.file.path)
 			.then(async (blob) => {
-				if (canceled) {
-					return
-				}
+				if (canceled) return
 
-				const mode = getPreviewMode(blob.type, props.file.name)
+				const effectiveBlob =
+					blob.type && blob.type !== 'application/octet-stream'
+						? blob
+						: new Blob([await blob.arrayBuffer()], {
+								type: guessMime(props.file.name),
+						  })
+
+				const mode = getPreviewMode(effectiveBlob.type || '', props.file.name)
 				setFileType(mode)
 
 				if (mode === 'text') {
-					const text = await blob.text()
-					if (canceled) {
-						return
-					}
+					const text = await effectiveBlob.text()
+					if (canceled) return
 					setTextContent(text)
 				} else if (mode !== 'unsupported') {
-					const url = URL.createObjectURL(blob)
+					const url = URL.createObjectURL(effectiveBlob)
 					setObjectUrl(url)
 				}
 
@@ -184,6 +198,23 @@ const FilePreviewDialog = (props) => {
 						Предпросмотр недоступен для этого типа файла. Скачайте файл,
 						чтобы открыть его.
 					</Typography>
+					<Button
+						variant="outlined"
+						onClick={() => {
+							if (objectUrl()) {
+								const a = Object.assign(document.createElement('a'), {
+									href: objectUrl(),
+									download: fileName() || 'file',
+									style: 'display: none',
+								})
+								document.body.appendChild(a)
+								a.click()
+								a.remove()
+							}
+						}}
+					>
+						Скачать
+					</Button>
 				</Show>
 			</DialogContent>
 		</Dialog>

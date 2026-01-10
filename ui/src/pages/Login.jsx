@@ -11,6 +11,19 @@ import Stack from '@suid/material/Stack'
 import Alert from '@suid/material/Alert'
 import Chip from '@suid/material/Chip'
 import Link from '@suid/material/Link'
+import Card from '@suid/material/Card'
+import CardContent from '@suid/material/CardContent'
+import CardHeader from '@suid/material/CardHeader'
+import List from '@suid/material/List'
+import ListItem from '@suid/material/ListItem'
+import ListItemIcon from '@suid/material/ListItemIcon'
+import ListItemText from '@suid/material/ListItemText'
+import CheckCircleIcon from '@suid/icons-material/CheckCircleOutline'
+import CloudDoneIcon from '@suid/icons-material/CloudDone'
+import SecurityIcon from '@suid/icons-material/Security'
+import FlashOnIcon from '@suid/icons-material/FlashOn'
+import LinkIcon from '@suid/icons-material/Link'
+import MobileFriendlyIcon from '@suid/icons-material/MobileFriendly'
 import createLocalStore from '../../libs'
 import { useNavigate } from '@solidjs/router'
 
@@ -190,6 +203,92 @@ const Login = (props) => {
 					</Grid>
 				</Grid>
 			</Container>
+			<Box sx={{ backgroundColor: '#f7f1e8' }}>
+				<Container maxWidth="lg" sx={{ py: { xs: 5, md: 7 } }}>
+					<Grid container spacing={3}>
+						<Grid item xs={12} md={7}>
+							<Paper sx={{ p: { xs: 3, md: 4 } }}>
+								<Stack spacing={2}>
+									<Typography variant="h5">
+										Зачем cloud.boostclicks
+									</Typography>
+									<List dense>
+										{[
+											{
+												icon: <SecurityIcon color="primary" />,
+												text: 'Приватность: все файлы хранятся в вашем Telegram-канале.',
+											},
+											{
+												icon: <FlashOnIcon color="secondary" />,
+												text: 'Скорость: подключайте несколько ботов для быстрой загрузки.',
+											},
+											{
+												icon: <LinkIcon color="primary" />,
+												text: 'Ссылки: включайте/отключайте доступ по ссылке одним переключателем.',
+											},
+											{
+												icon: <MobileFriendlyIcon color="secondary" />,
+												text: 'Мобильный UI: крупные элементы, PWA, предпросмотр без скачивания.',
+											},
+										].map((item) => (
+											<ListItem>
+												<ListItemIcon>{item.icon}</ListItemIcon>
+												<ListItemText primary={item.text} />
+											</ListItem>
+										))}
+									</List>
+									<Typography variant="body2" color="text.secondary">
+										Ключевые запросы: телеграм облако, telegram диск, облако без
+										лимитов, приватное хранилище, быстрые загрузки, мобильное
+										облако, файлы по ссылке, бесплатный диск, pwa cloud.
+									</Typography>
+								</Stack>
+							</Paper>
+						</Grid>
+						<Grid item xs={12} md={5}>
+							<Stack spacing={2}>
+								<Card>
+									<CardHeader
+										title="Как подключить"
+										subheader="4 шага и всё готово"
+									/>
+									<CardContent>
+										<List dense>
+											{[
+												'Создайте Telegram‑канал (лучше приватный).',
+												'Узнайте ID: @userinfobot или @getmyid_bot (ID вида -100...).',
+												'Подключите облако, добавьте бота и назначьте его админом канала.',
+												'Прикрепите несколько ботов для максимальной скорости.',
+											].map((text) => (
+												<ListItem>
+													<ListItemIcon>
+														<CheckCircleIcon color="primary" />
+													</ListItemIcon>
+													<ListItemText primary={text} />
+												</ListItem>
+											))}
+										</List>
+									</CardContent>
+								</Card>
+								<Card>
+									<CardHeader
+										avatar={<CloudDoneIcon color="secondary" />}
+										title="Функционал"
+										subheader="Предпросмотр, ссылки, загрузка папок"
+									/>
+									<CardContent>
+										<Typography variant="body2" color="text.secondary">
+											Загружайте файлы и папки, просматривайте фото, видео,
+											документы прямо в интерфейсе, делитесь ссылками на файлы и
+											папки, скачивайте папку целиком.
+										</Typography>
+									</CardContent>
+								</Card>
+							</Stack>
+						</Grid>
+					</Grid>
+				</Container>
+			</Box>
 			<Footer />
 		</Box>
 	)
