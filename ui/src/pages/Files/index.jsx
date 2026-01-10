@@ -38,6 +38,7 @@ const Files = () => {
 	const [previewFile, setPreviewFile] = createSignal()
 	const [isUploading, setIsUploading] = createSignal(false)
 	const [uploadProgress, setUploadProgress] = createSignal(0)
+	const [uploadNote, setUploadNote] = createSignal('')
 	const navigate = useNavigate()
 	const params = useParams()
 	const basePath = `/storages/${params.id}/files`
@@ -145,6 +146,7 @@ const Files = () => {
 		const currentPath = getCurrentPath()
 		setIsUploading(true)
 		setUploadProgress(0)
+		setUploadNote('')
 		const totalSize = files.reduce((sum, f) => sum + f.size, 0) || 1
 		const chunkSize = 20 * 1024 * 1024
 		let uploaded = 0
@@ -159,6 +161,13 @@ const Files = () => {
 				let fileId
 				let offset = 0
 				const totalChunks = Math.ceil(file.size / chunkSize)
+
+				if (file.size > 100 * 1024 * 1024) {
+					addAlert(
+						`Файл больше 100 МБ. Добавьте больше ботов в облако/канал для ускорения загрузки.`,
+						'info'
+					)
+				}
 
 				while (offset < file.size) {
 					const chunk = file.slice(offset, offset + chunkSize)
@@ -177,14 +186,11 @@ const Files = () => {
 							(loaded) => {
 								const delta = loaded - prevLoaded
 								prevLoaded = loaded
-								setUploadProgress(
-									Math.min(
-										100,
-										Math.round(
-											((uploaded + offset + loaded) / totalSize) * 100
-										)
-									)
+								const pct = Math.round(
+									((uploaded + offset + loaded) / totalSize) * 100
 								)
+								setUploadProgress(Math.min(99, pct))
+								setUploadNote('Дождитесь завершения — файл докачивается в Telegram')
 							}
 						)
 						if (typeof res === 'string') fileId = res
@@ -198,11 +204,14 @@ const Files = () => {
 				}
 
 				addAlert(`Файл "${file.name}" загружен`, 'success')
+				setUploadProgress(100)
+				setUploadNote('Финализация загрузки...')
 			}
 			await fetchFSLayer()
 		} finally {
 			setIsUploading(false)
 			setUploadProgress(0)
+			setUploadNote('')
 		}
 	}
 
@@ -281,6 +290,7 @@ const Files = () => {
 									<LinearProgress variant="determinate" value={uploadProgress()} />
 									<Typography variant="caption" color="text.secondary">
 										Загрузка файлов в облако: {uploadProgress()}%
+										{uploadNote() ? ` · ${uploadNote()}` : ''}
 									</Typography>
 								</Box>
 							</Show>

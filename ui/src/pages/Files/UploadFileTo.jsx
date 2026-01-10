@@ -55,6 +55,13 @@ const UploadFileTo = () => {
 				const totalChunks = Math.ceil(file.size / chunkSize)
 				let fileId
 
+				if (file.size > 100 * 1024 * 1024) {
+					addAlert(
+						`Файл больше 100 МБ. Добавьте больше ботов в облако/канал для ускорения загрузки.`,
+						'info'
+					)
+				}
+
 				while (offset < file.size) {
 					const chunk = file.slice(offset, offset + chunkSize)
 					const chunkIndex = Math.floor(offset / chunkSize)
@@ -71,14 +78,10 @@ const UploadFileTo = () => {
 							(loaded) => {
 								const delta = loaded - prevLoaded
 								prevLoaded = loaded
-								setUploadProgress(
-									Math.min(
-										100,
-										Math.round(
-											((uploaded + offset + loaded) / totalSize) * 100
-										)
-									)
+								const pct = Math.round(
+									((uploaded + offset + loaded) / totalSize) * 100
 								)
+								setUploadProgress(Math.min(99, pct))
 							}
 						)
 						if (typeof res === 'string') fileId = res
@@ -92,6 +95,7 @@ const UploadFileTo = () => {
 				}
 
 				addAlert(`Файл "${file.name}" загружен`, 'success')
+				setUploadProgress(100)
 			}
 			navigateToFiles()
 		} finally {
