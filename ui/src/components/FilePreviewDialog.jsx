@@ -10,6 +10,9 @@ import API from '../api'
 
 const textExtensions = new Set(['txt', 'md', 'csv', 'json', 'log'])
 const officeExtensions = new Set(['doc', 'docx', 'xls', 'xlsx', 'ppt', 'pptx'])
+const imageExtensions = new Set(['jpg', 'jpeg', 'png', 'gif', 'webp', 'bmp', 'svg'])
+const videoExtensions = new Set(['mp4', 'mov', 'webm', 'mkv'])
+const audioExtensions = new Set(['mp3', 'wav', 'ogg', 'aac'])
 
 const getExtension = (name = '') => {
 	const parts = name.toLowerCase().split('.')
@@ -45,11 +48,11 @@ const FilePreviewDialog = (props) => {
 	const getPreviewMode = (blobType, name) => {
 		const ext = getExtension(name)
 		if (officeExtensions.has(ext)) return 'office'
-		if (blobType.startsWith('image/')) return 'image'
-		if (blobType.startsWith('video/')) return 'video'
-		if (blobType.startsWith('audio/')) return 'audio'
-		if (blobType === 'application/pdf' || ext === 'pdf') return 'pdf'
-		if (blobType.startsWith('text/') || textExtensions.has(ext)) return 'text'
+		if (imageExtensions.has(ext) || blobType.startsWith('image/')) return 'image'
+		if (videoExtensions.has(ext) || blobType.startsWith('video/')) return 'video'
+		if (audioExtensions.has(ext) || blobType.startsWith('audio/')) return 'audio'
+		if (ext === 'pdf' || blobType === 'application/pdf') return 'pdf'
+		if (textExtensions.has(ext) || blobType.startsWith('text/')) return 'text'
 		return 'unsupported'
 	}
 
