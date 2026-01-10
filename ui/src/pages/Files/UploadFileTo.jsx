@@ -12,7 +12,6 @@ import LinearProgress from '@suid/material/LinearProgress'
 import API from '../../api'
 import { alertStore } from '../../components/AlertStack'
 import { checkAuth } from '../../common/auth_guard'
-import createLocalStore from '../../../libs'
 
 const UploadFileTo = () => {
 	const { addAlert } = alertStore
@@ -47,11 +46,11 @@ const UploadFileTo = () => {
 		setIsUploading(true)
 		setUploadProgress(0)
 		const totalSize = files.reduce((sum, f) => sum + f.size, 0) || 1
+		const chunkSize = 512 * 1024
 		let uploaded = 0
 		try {
 			for (const file of files) {
 				const fullPath = basePath ? `${basePath}/${file.name}` : file.name
-				const chunkSize = 8 * 1024 * 1024
 				let offset = 0
 				const totalChunks = Math.ceil(file.size / chunkSize)
 				let fileId
@@ -61,7 +60,7 @@ const UploadFileTo = () => {
 					const chunkIndex = Math.floor(offset / chunkSize)
 					let prevLoaded = 0
 					try {
-						const res = await uploadWithProgress(
+						const res = await API.files.uploadFileChunked(
 							params.id,
 							fullPath,
 							chunk,
@@ -100,48 +99,6 @@ const UploadFileTo = () => {
 			setUploadProgress(0)
 		}
 	}
-
-	const uploadWithProgress = (
-		storageId,
-		fullPath,
-		chunk,
-		chunkIndex,
-		totalChunks,
-		fileId,
-		totalSize,
-		onProgress
-	) =>
-		new Promise((resolve, reject) => {
-			const form = new FormData()
-			form.append('chunk', chunk)
-			form.append('path', fullPath)
-			form.append('chunk_index', String(chunkIndex))
-			form.append('total_chunks', String(totalChunks))
-			if (fileId) form.append('file_id', fileId)
-			if (chunkIndex === 0) form.append('size', String(totalSize || chunk.size || 0))
-
-			const [store] = createLocalStore()
-			const apiBase = import.meta.env.VITE_API_BASE || '/api'
-			const xhr = new XMLHttpRequest()
-			xhr.open('POST', `${apiBase}/storages/${storageId}/files/upload_chunked`)
-			xhr.setRequestHeader('Authorization', `Bearer ${store.access_token}`)
-			xhr.timeout = 0
-			xhr.upload.onprogress = (e) => {
-				if (e.lengthComputable && typeof onProgress === 'function') {
-					onProgress(e.loaded)
-				}
-			}
-			xhr.onload = () => {
-				if (xhr.status >= 200 && xhr.status < 300) {
-					resolve()
-				} else {
-					reject(new Error(xhr.responseText || 'upload failed'))
-				}
-			}
-			xhr.onerror = () => reject(new Error('upload failed'))
-			xhr.ontimeout = () => reject(new Error('upload timeout'))
-			xhr.send(form)
-		})
 
 	return (
 		<Stack sx={{ maxWidth: 540, minWidth: 320, mx: 'auto' }}>

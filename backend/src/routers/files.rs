@@ -179,7 +179,7 @@ impl FilesRouter {
         Extension(user): Extension<AuthUser>,
         RoutePath(storage_id): RoutePath<Uuid>,
         mut multipart: Multipart,
-    ) -> Result<Json<Uuid>, (StatusCode, String)> {
+    ) -> Result<Json<serde_json::Value>, (StatusCode, String)> {
         let mut path: Option<String> = None;
         let mut size: Option<i64> = None;
         let mut file_id: Option<Uuid> = None;

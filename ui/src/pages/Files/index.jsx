@@ -146,12 +146,12 @@ const Files = () => {
 		setIsUploading(true)
 		setUploadProgress(0)
 		const totalSize = files.reduce((sum, f) => sum + f.size, 0) || 1
+		const chunkSize = 512 * 1024
 		let uploaded = 0
 
 		try {
 			for (const file of files) {
 				let fileId
-				const chunkSize = 8 * 1024 * 1024
 				let offset = 0
 				const totalChunks = Math.ceil(file.size / chunkSize)
 
