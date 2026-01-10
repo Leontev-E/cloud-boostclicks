@@ -39,36 +39,48 @@ impl<'d> SharesService<'d> {
     ) -> CloudBoostclicksResult<Share> {
         check_access(&self.access_repo, user.id, storage_id, &AccessType::R).await?;
 
-        if !Self::validate_path(&in_schema.path) {
-            return Err(CloudBoostclicksError::InvalidPath);
-        }
-
-        let mut path = in_schema.path.trim().to_string();
-        let is_folder = in_schema.is_folder;
-
-        if is_folder {
-            path = path.trim_end_matches('/').to_string();
-            if path.is_empty() {
-                return Err(CloudBoostclicksError::InvalidPath);
-            }
-
-            let prefix = format!("{path}/");
-            let exists = self.files_repo.folder_exists(storage_id, &prefix).await?;
-            if !exists {
-                return Err(CloudBoostclicksError::DoesNotExist("папка".to_string()));
-            }
-
-            path = prefix;
-        } else {
-            path = path.trim_end_matches('/').to_string();
-            let _ = self
-                .files_repo
-                .get_uploaded_file_by_path(&path, storage_id)
-                .await?;
-        }
+        let path = self
+            .normalize_and_validate_path(storage_id, &in_schema.path, in_schema.is_folder)
+            .await?;
 
         self.shares_repo
-            .create(storage_id, &path, is_folder, user.id)
+            .create(storage_id, &path, in_schema.is_folder, user.id)
+            .await
+    }
+
+    pub async fn find_by_path(
+        &self,
+        storage_id: Uuid,
+        path: &str,
+        is_folder: bool,
+        user: &AuthUser,
+    ) -> CloudBoostclicksResult<Option<Share>> {
+        check_access(&self.access_repo, user.id, storage_id, &AccessType::R).await?;
+
+        let path = self
+            .normalize_and_validate_path(storage_id, path, is_folder)
+            .await?;
+
+        self.shares_repo
+            .get_by_storage_and_path(storage_id, &path)
+            .await
+    }
+
+    pub async fn delete_by_path(
+        &self,
+        storage_id: Uuid,
+        path: &str,
+        is_folder: bool,
+        user: &AuthUser,
+    ) -> CloudBoostclicksResult<()> {
+        check_access(&self.access_repo, user.id, storage_id, &AccessType::R).await?;
+
+        let path = self
+            .normalize_and_validate_path(storage_id, path, is_folder)
+            .await?;
+
+        self.shares_repo
+            .delete_by_storage_and_path(storage_id, &path)
             .await
     }
 
@@ -146,6 +158,41 @@ impl<'d> SharesService<'d> {
 
     fn validate_path(path: &str) -> bool {
         !path.starts_with(r"/") && !path.contains(r"//")
+    }
+
+    async fn normalize_and_validate_path(
+        &self,
+        storage_id: Uuid,
+        path: &str,
+        is_folder: bool,
+    ) -> CloudBoostclicksResult<String> {
+        if !Self::validate_path(path) {
+            return Err(CloudBoostclicksError::InvalidPath);
+        }
+
+        let mut normalized = path.trim().to_string();
+        if is_folder {
+            normalized = normalized.trim_end_matches('/').to_string();
+            if normalized.is_empty() {
+                return Err(CloudBoostclicksError::InvalidPath);
+            }
+
+            let prefix = format!("{normalized}/");
+            let exists = self.files_repo.folder_exists(storage_id, &prefix).await?;
+            if !exists {
+                return Err(CloudBoostclicksError::DoesNotExist("папка".to_string()));
+            }
+
+            normalized = prefix;
+        } else {
+            normalized = normalized.trim_end_matches('/').to_string();
+            let _ = self
+                .files_repo
+                .get_uploaded_file_by_path(&normalized, storage_id)
+                .await?;
+        }
+
+        Ok(normalized)
     }
 
     async fn download_file_by_id(

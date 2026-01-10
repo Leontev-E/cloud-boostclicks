@@ -1,4 +1,4 @@
-import { Routes, Route, Navigate } from '@solidjs/router'
+import { Routes, Route } from '@solidjs/router'
 import { ThemeProvider, createTheme } from '@suid/material'
 
 import Login from './pages/Login'
@@ -13,6 +13,7 @@ import UploadFileTo from './pages/Files/UploadFileTo'
 import Register from './pages/Register'
 import NotFound from './pages/404'
 import Share from './pages/Share'
+import Home from './pages/Home'
 
 const theme = createTheme({
 	palette: {
@@ -104,12 +105,12 @@ const App = () => {
 	return (
 		<ThemeProvider theme={theme}>
 			<Routes>
+				<Route path="/" component={Home} />
 				<Route path="/login" component={Login} />
 				<Route path="/register" component={Register} />
 				<Route path="/share/:id" component={Share} />
 
 				<Route path="/" component={BasicLayout}>
-					<Route path="/" element={<Navigate href="/storages" />} />
 					<Route path="/storages" component={Storages} />
 					<Route path="/storages/register" component={StorageCreateForm} />
 					<Route path="/storages/:id/files/*path" component={Files} />

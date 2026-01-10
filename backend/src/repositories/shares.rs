@@ -56,4 +56,36 @@ impl<'d> SharesRepository<'d> {
         .await
         .map_err(|_| CloudBoostclicksError::DoesNotExist("ссылка".to_string()))
     }
+
+    pub async fn get_by_storage_and_path(
+        &self,
+        storage_id: Uuid,
+        path: &str,
+    ) -> CloudBoostclicksResult<Option<Share>> {
+        sqlx::query_as(
+            format!(
+                "SELECT id, storage_id, path, is_folder FROM {SHARES_TABLE} WHERE storage_id = $1 AND path = $2"
+            )
+            .as_str(),
+        )
+        .bind(storage_id)
+        .bind(path)
+        .fetch_optional(self.db)
+        .await
+        .map_err(|_| CloudBoostclicksError::Unknown)
+    }
+
+    pub async fn delete_by_storage_and_path(
+        &self,
+        storage_id: Uuid,
+        path: &str,
+    ) -> CloudBoostclicksResult<()> {
+        sqlx::query(format!("DELETE FROM {SHARES_TABLE} WHERE storage_id = $1 AND path = $2").as_str())
+            .bind(storage_id)
+            .bind(path)
+            .execute(self.db)
+            .await
+            .map_err(|_| CloudBoostclicksError::Unknown)
+            .map(|_| ())
+    }
 }

@@ -1,9 +1,10 @@
 import { alertStore } from '../components/AlertStack'
 import createLocalStore from '../../libs'
 
-const API_BASE = import.meta.env.VITE_API_BASE || 'http://localhost:8000/api'
+export const API_BASE =
+	import.meta.env.VITE_API_BASE || 'http://localhost:8000/api'
 
-const handleUnauthorized = () => {
+export const handleUnauthorized = () => {
 	const [store, setStore] = createLocalStore()
 
 	if (store.access_token) {

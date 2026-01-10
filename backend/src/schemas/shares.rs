@@ -46,3 +46,9 @@ impl ShareInfoSchema {
         }
     }
 }
+
+#[derive(Deserialize)]
+pub struct ShareQuery {
+    pub path: String,
+    pub is_folder: bool,
+}

@@ -1,6 +1,10 @@
 import createLocalStore from '../../libs'
 
-import apiRequest, { apiMultipartRequest } from './request'
+import apiRequest, {
+	API_BASE,
+	apiMultipartRequest,
+	handleUnauthorized,
+} from './request'
 
 /////////////////////////////////////////////////////////////
 ////  USERS
@@ -357,6 +361,68 @@ const createShare = async (storage_id, path, is_folder) => {
 }
 
 /**
+ *
+ * @param {string} storage_id
+ * @param {string} path
+ * @param {boolean} is_folder
+ * @returns {Promise<ShareInfo>}
+ */
+const getShareByPath = async (storage_id, path, is_folder) => {
+	const safePath = encodeURIComponent(path || '')
+	const response = await fetch(
+		`${API_BASE}/storages/${storage_id}/files/share?path=${safePath}&is_folder=${is_folder}`,
+		{
+			method: 'get',
+			headers: { Authorization: getAuthToken() },
+		}
+	)
+
+	if (response.status === 401) {
+		handleUnauthorized()
+	}
+
+	if (response.status === 404) {
+		return null
+	}
+
+	if (!response.ok) {
+		throw new Error(await response.text())
+	}
+
+	return await response.json()
+}
+
+/**
+ *
+ * @param {string} storage_id
+ * @param {string} path
+ * @param {boolean} is_folder
+ * @returns {Promise<void>}
+ */
+const deleteShareByPath = async (storage_id, path, is_folder) => {
+	const safePath = encodeURIComponent(path || '')
+	const response = await fetch(
+		`${API_BASE}/storages/${storage_id}/files/share?path=${safePath}&is_folder=${is_folder}`,
+		{
+			method: 'delete',
+			headers: { Authorization: getAuthToken() },
+		}
+	)
+
+	if (response.status === 401) {
+		handleUnauthorized()
+	}
+
+	if (response.status === 404) {
+		return
+	}
+
+	if (!response.ok) {
+		throw new Error(await response.text())
+	}
+}
+
+/**
  * @typedef {Object} ShareInfo
  * @property {string} id
  * @property {string} path
@@ -447,6 +513,8 @@ const API = {
 		downloadFolder,
 		deleteFile,
 		createShare,
+		getShareByPath,
+		deleteShareByPath,
 	},
 	shares: {
 		getShare,

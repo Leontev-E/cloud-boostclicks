@@ -15,18 +15,24 @@ import { A } from '@solidjs/router'
 
 import API from '../api'
 import SideBarItem from './SideBarItem'
+import createLocalStore from '../../libs'
 
 const initOpen = window.innerWidth > 1024
 
 const SideBar = () => {
 	const [open, setOpen] = createSignal(initOpen)
 	const [storages, setStorages] = createSignal([])
+	const [store] = createLocalStore()
 
 	const toggleDrawerOpen = () => {
 		setOpen((open) => !open)
 	}
 
 	onMount(async () => {
+		if (!store.access_token) {
+			return
+		}
+
 		try {
 			const storagesSchema = await API.storages.listStorages()
 			setStorages(storagesSchema.storages || [])

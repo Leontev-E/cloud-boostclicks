@@ -24,7 +24,7 @@ use crate::{
         DeleteSummary, InFileSchema, InFolderSchema, SearchQuery, UploadParams,
         IN_FILE_SCHEMA_FIELDS_AMOUNT,
     },
-    schemas::shares::{CreateShareSchema, ShareCreatedSchema},
+    schemas::shares::{CreateShareSchema, ShareCreatedSchema, ShareInfoSchema, ShareQuery},
     services::files::FilesService,
     services::shares::SharesService,
 };
@@ -34,7 +34,12 @@ pub struct FilesRouter;
 impl FilesRouter {
     pub fn get_router(state: Arc<AppState>) -> Router<Arc<AppState>, axum::body::Body> {
         Router::new()
-            .route("/share", post(Self::create_share))
+            .route(
+                "/share",
+                get(Self::get_share)
+                    .post(Self::create_share)
+                    .delete(Self::delete_share),
+            )
             .route("/create_folder", post(Self::create_folder))
             .route("/upload", post(Self::upload))
             .route("/upload_to", post(Self::upload_to))
@@ -300,5 +305,40 @@ impl FilesRouter {
             .map_err(|e| <(StatusCode, String)>::from(e))?;
 
         Ok(Json(ShareCreatedSchema::new(share.id)))
+    }
+
+    async fn get_share(
+        State(state): State<Arc<AppState>>,
+        Extension(user): Extension<AuthUser>,
+        RoutePath(storage_id): RoutePath<Uuid>,
+        Query(query): Query<ShareQuery>,
+    ) -> Result<Json<ShareInfoSchema>, (StatusCode, String)> {
+        let share = SharesService::new(&state.db, state.tx.clone())
+            .find_by_path(storage_id, &query.path, query.is_folder, &user)
+            .await
+            .map_err(|e| <(StatusCode, String)>::from(e))?;
+
+        match share {
+            Some(share) => Ok(Json(ShareInfoSchema::new(
+                share.id,
+                share.path,
+                share.is_folder,
+            ))),
+            None => Err((StatusCode::NOT_FOUND, "Не найдено".to_owned())),
+        }
+    }
+
+    async fn delete_share(
+        State(state): State<Arc<AppState>>,
+        Extension(user): Extension<AuthUser>,
+        RoutePath(storage_id): RoutePath<Uuid>,
+        Query(query): Query<ShareQuery>,
+    ) -> Result<StatusCode, (StatusCode, String)> {
+        SharesService::new(&state.db, state.tx.clone())
+            .delete_by_path(storage_id, &query.path, query.is_folder, &user)
+            .await
+            .map_err(|e| <(StatusCode, String)>::from(e))?;
+
+        Ok(StatusCode::NO_CONTENT)
     }
 }

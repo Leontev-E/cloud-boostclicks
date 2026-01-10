@@ -6,14 +6,17 @@ import Typography from '@suid/material/Typography'
 import { useNavigate, useParams } from '@solidjs/router'
 import Stack from '@suid/material/Stack'
 import ChevronLeftIcon from '@suid/icons-material/ChevronLeft'
+import { onMount } from 'solid-js'
 
 import API from '../../api'
 import { alertStore } from '../../components/AlertStack'
+import { checkAuth } from '../../common/auth_guard'
 
 const UploadFileTo = () => {
 	const { addAlert } = alertStore
 	const navigate = useNavigate()
 	const params = useParams()
+	onMount(checkAuth)
 
 	const navigateToFiles = () => {
 		navigate(`/storages/${params.id}/files`)

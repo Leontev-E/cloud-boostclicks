@@ -8,6 +8,7 @@ import { Show, createSignal, mapArray, onMount } from 'solid-js'
 import { useNavigate } from '@solidjs/router'
 
 import API from '../../api'
+import { checkAuth } from '../../common/auth_guard'
 
 const StorageWorkers = () => {
 	/**
@@ -17,6 +18,7 @@ const StorageWorkers = () => {
 	const navigate = useNavigate()
 
 	onMount(async () => {
+		checkAuth()
 		const storageWorkers = await API.storageWorkers.listStorageWorkers()
 		setStorageWorkers(storageWorkers)
 	})

@@ -16,6 +16,7 @@ import ChevronLeftIcon from '@suid/icons-material/ChevronLeft'
 
 import API from '../../api'
 import { alertStore } from '../../components/AlertStack'
+import { checkAuth } from '../../common/auth_guard'
 
 const StorageWorkerCreateForm = () => {
 	/**
@@ -27,6 +28,7 @@ const StorageWorkerCreateForm = () => {
 	const tokenHint = 'Токен создается в @BotFather и выглядит как 123456:ABC...'
 
 	onMount(async () => {
+		checkAuth()
 		const storagesSchema = await API.storages.listStorages()
 		setStorages(storagesSchema.storages)
 	})

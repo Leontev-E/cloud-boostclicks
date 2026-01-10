@@ -4,22 +4,12 @@ import Stack from '@suid/material/Stack'
 import Paper from '@suid/material/Paper'
 import Button from '@suid/material/Button'
 import Box from '@suid/material/Box'
-import Chip from '@suid/material/Chip'
-import Divider from '@suid/material/Divider'
 import { Show, createSignal, mapArray, onMount } from 'solid-js'
 import { useNavigate } from '@solidjs/router'
 
 import API from '../../api'
 import { convertSize } from '../../common/size_converter'
-
-const keywords = [
-	'облако',
-	'telegram диск',
-	'бесплатное хранилище',
-	'безлимитные файлы',
-	'быстрый загрузчик',
-	'мобильное облако',
-]
+import { checkAuth } from '../../common/auth_guard'
 
 const Storages = () => {
 	/**
@@ -29,70 +19,13 @@ const Storages = () => {
 	const navigate = useNavigate()
 
 	onMount(async () => {
+		checkAuth()
 		const storagesSchema = await API.storages.listStorages()
 		setStorages(storagesSchema.storages)
 	})
 
 	return (
 		<Stack spacing={3}>
-			<Paper
-				sx={{
-					p: { xs: 3, md: 4 },
-					background: 'linear-gradient(135deg, #2aabe2 0%, #1b6fd1 100%)',
-					color: '#fff',
-					border: 'none',
-					boxShadow: '0 28px 60px rgba(27,26,23,0.18)',
-				}}
-			>
-				<Grid container spacing={3} alignItems="center">
-					<Grid item xs={12} md={8}>
-						<Typography variant="h3" sx={{ mb: 1, fontWeight: 700 }}>
-							Телеграм‑облако без лимитов
-						</Typography>
-						<Typography variant="body1" sx={{ mb: 2, opacity: 0.9 }}>
-							Храните файлы в Telegram-канале и работайте как в привычном облаке:
-							предпросмотр, быстрые ссылки, загрузка в один тап.
-						</Typography>
-						<Stack direction="row" spacing={1} sx={{ flexWrap: 'wrap', gap: 1 }}>
-							{keywords.map((k) => (
-								<Chip
-									label={k}
-									variant="outlined"
-									sx={{
-										color: '#fff',
-										borderColor: 'rgba(255,255,255,0.5)',
-										background: 'rgba(255,255,255,0.08)',
-									}}
-								/>
-							))}
-						</Stack>
-					</Grid>
-					<Grid item xs={12} md={4}>
-						<Stack spacing={1.2}>
-							<Button
-								onClick={() => navigate('/storages/register')}
-								variant="contained"
-								color="secondary"
-								sx={{ color: '#1b1a17', fontWeight: 700 }}
-							>
-								Создать облако
-							</Button>
-							<Button
-								onClick={() => navigate('/storage_workers')}
-								variant="outlined"
-								sx={{ color: '#fff', borderColor: 'rgba(255,255,255,0.5)' }}
-							>
-								Добавить бота
-							</Button>
-							<Typography variant="caption" sx={{ opacity: 0.85 }}>
-								Крупные элементы для мобильных, предпросмотр без скачивания,
-								приватность на базе вашего канала.
-							</Typography>
-						</Stack>
-					</Grid>
-				</Grid>
-			</Paper>
-
 			<Stack
 				direction={{ xs: 'column', sm: 'row' }}
 				justifyContent="space-between"
@@ -102,16 +35,25 @@ const Storages = () => {
 				<Box>
 					<Typography variant="h4">Облака</Typography>
 					<Typography variant="body2" color="text.secondary">
-						Каждое облако привязано к Telegram-каналу.
+						Каждое облако привязано к вашему Telegram-каналу.
 					</Typography>
 				</Box>
-				<Button
-					onClick={() => navigate('/storages/register')}
-					variant="contained"
-					color="secondary"
-				>
-					Создать облако
-				</Button>
+				<Stack direction="row" spacing={1.5}>
+					<Button
+						onClick={() => navigate('/storages/register')}
+						variant="contained"
+						color="secondary"
+					>
+						Создать облако
+					</Button>
+					<Button
+						onClick={() => navigate('/storage_workers')}
+						variant="outlined"
+						color="primary"
+					>
+						Боты
+					</Button>
+				</Stack>
 			</Stack>
 
 			<Paper sx={{ p: { xs: 2.5, md: 3 } }}>
@@ -131,11 +73,12 @@ const Storages = () => {
 					</Typography>
 					<Typography variant="body2" color="text.secondary">
 						4) Перейдите в раздел "Боты", добавьте токен и привяжите бота
-						к облаку. Бота нужно назначить админом канала.
+						к облаку.
 					</Typography>
 					<Typography variant="body2" color="text.secondary">
-						5) Для более быстрой работы можно добавить несколько ботов в канал
-						и привязать их к одному облаку.
+						5) Назначьте бота администратором канала (отправка сообщений и файлов)
+						и, при необходимости, добавьте несколько ботов к одному облаку для
+						быстрой работы.
 					</Typography>
 					<Typography variant="body2" color="text.secondary">
 						6) Готово — загружайте файлы.
@@ -144,37 +87,9 @@ const Storages = () => {
 						Поддерживаются как публичные, так и приватные каналы. К одному облаку
 						рекомендуется привязывать несколько ботов для более быстрой работы.
 					</Typography>
-				</Stack>
-
-				<Divider sx={{ my: 2 }} />
-				<Stack direction={{ xs: 'column', sm: 'row' }} spacing={2}>
-					<Paper
-						variant="outlined"
-						sx={{ p: 2, flex: 1, backgroundColor: 'rgba(27,26,23,0.02)' }}
-					>
-						<Typography variant="subtitle1">Для мобильных</Typography>
-						<Typography variant="body2" color="text.secondary">
-							Облегчённый интерфейс, крупные кнопки, предпросмотр без скачивания.
-						</Typography>
-					</Paper>
-					<Paper
-						variant="outlined"
-						sx={{ p: 2, flex: 1, backgroundColor: 'rgba(27,26,23,0.02)' }}
-					>
-						<Typography variant="subtitle1">Приватность</Typography>
-						<Typography variant="body2" color="text.secondary">
-							Все данные внутри вашего канала. Публичные ссылки — только по вашему запросу.
-						</Typography>
-					</Paper>
-					<Paper
-						variant="outlined"
-						sx={{ p: 2, flex: 1, backgroundColor: 'rgba(27,26,23,0.02)' }}
-					>
-						<Typography variant="subtitle1">Безлимит</Typography>
-						<Typography variant="body2" color="text.secondary">
-							Telegram позволяет хранить большие файлы — мы даём удобный UI поверх.
-						</Typography>
-					</Paper>
+					<Typography variant="caption" color="text.secondary">
+						Домен нужен только для Telegram-логина; в канал домен добавлять не нужно.
+					</Typography>
 				</Stack>
 			</Paper>
 

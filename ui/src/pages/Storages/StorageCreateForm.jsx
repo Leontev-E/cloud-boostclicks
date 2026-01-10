@@ -4,13 +4,14 @@ import Button from '@suid/material/Button'
 import TextField from '@suid/material/TextField'
 import Typography from '@suid/material/Typography'
 import Paper from '@suid/material/Paper'
-import { createSignal } from 'solid-js'
+import { createSignal, onMount } from 'solid-js'
 import { useNavigate } from '@solidjs/router'
 import Stack from '@suid/material/Stack'
 import ChevronLeftIcon from '@suid/icons-material/ChevronLeft'
 
 import API from '../../api'
 import { alertStore } from '../../components/AlertStack'
+import { checkAuth } from '../../common/auth_guard'
 
 const StorageCreateForm = () => {
 	const [chatIdErr, setChatIdErr] = createSignal(null)
@@ -18,6 +19,8 @@ const StorageCreateForm = () => {
 	const navigate = useNavigate()
 	const chatIdHint =
 		'Как получить ID: добавьте @userinfobot или @getmyid_bot в канал и отправьте сообщение, либо перешлите сообщение из канала боту. ID будет вида -1001234567890.'
+
+	onMount(checkAuth)
 
 	/**
 	 *

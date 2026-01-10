@@ -20,7 +20,6 @@ import API from '../api'
 import ActionConfirmDialog from './ActionConfirmDialog'
 import FileInfoDialog from './FileInfo'
 import { alertStore } from './AlertStack'
-import FilePreviewDialog from './FilePreviewDialog'
 import ShareDialog from './ShareDialog'
 
 /**
@@ -41,9 +40,10 @@ const FSListItem = (props) => {
 	const [isActionConfirmDialogOpened, setIsActionConfirmDialogOpened] =
 		createSignal(false)
 	const [isInfoDialogOpened, setIsInfoDialogOpened] = createSignal(false)
-	const [isPreviewDialogOpened, setIsPreviewDialogOpened] = createSignal(false)
 	const [isShareDialogOpened, setIsShareDialogOpened] = createSignal(false)
 	const [shareLink, setShareLink] = createSignal('')
+	const [shareEnabled, setShareEnabled] = createSignal(false)
+	const [shareLoading, setShareLoading] = createSignal(false)
 	const navigate = useNavigate()
 	const params = useParams()
 	const { addAlert } = alertStore
@@ -59,6 +59,11 @@ const FSListItem = (props) => {
 			.split('/')
 			.map((segment) => encodeURIComponent(segment))
 			.join('/')
+
+	const getSharePath = () =>
+		props.fsElement.is_file
+			? props.fsElement.path
+			: `${props.fsElement.path.replace(/\/?$/, '/')}`
 
 	const handleNavigate = () => {
 		if (!props.fsElement.is_file) {
@@ -107,32 +112,75 @@ const FSListItem = (props) => {
 
 	const openPreviewDialog = () => {
 		handleCloseMore()
-		setIsPreviewDialogOpened(true)
+		props.onPreview?.(props.fsElement)
 	}
 
 	const openShareDialog = async () => {
 		handleCloseMore()
 
-		const sharePath = props.fsElement.is_file
-			? props.fsElement.path
-			: `${props.fsElement.path.replace(/\/?$/, '/')}`
+		const sharePath = getSharePath()
+
+		setShareLoading(true)
+		setShareEnabled(false)
+		setShareLink('')
 
 		try {
-			const response = await API.files.createShare(
+			const response = await API.files.getShareByPath(
 				params.id,
 				sharePath,
 				!props.fsElement.is_file
 			)
 
-			const link = `${window.location.origin}/share/${response.id}`
-			setShareLink(link)
-			setIsShareDialogOpened(true)
+			if (response?.id) {
+				setShareEnabled(true)
+				setShareLink(`${window.location.origin}/share/${response.id}`)
+			}
 		} catch (err) {
-			addAlert('Не удалось создать ссылку. Попробуйте позже.', 'error')
+			console.error(err)
+			addAlert('Не удалось получить статус доступа. Попробуйте позже.', 'error')
+		} finally {
+			setShareLoading(false)
+			setIsShareDialogOpened(true)
+		}
+	}
+
+	const toggleShare = async (enabled) => {
+		const sharePath = getSharePath()
+
+		setShareLoading(true)
+		try {
+			if (enabled) {
+				const response = await API.files.createShare(
+					params.id,
+					sharePath,
+					!props.fsElement.is_file
+				)
+
+				const link = `${window.location.origin}/share/${response.id}`
+				setShareLink(link)
+				setShareEnabled(true)
+				addAlert('Доступ по ссылке включен', 'success')
+			} else {
+				await API.files.deleteShareByPath(
+					params.id,
+					sharePath,
+					!props.fsElement.is_file
+				)
+
+				setShareLink('')
+				setShareEnabled(false)
+				addAlert('Доступ по ссылке отключен', 'success')
+			}
+		} catch (err) {
+			console.error(err)
+			addAlert('Не удалось обновить доступ. Попробуйте позже.', 'error')
+		} finally {
+			setShareLoading(false)
 		}
 	}
 
 	const copyShareLink = async () => {
+		if (!shareLink()) return
 		try {
 			await navigator.clipboard.writeText(shareLink())
 			addAlert('Ссылка скопирована', 'success')
@@ -250,18 +298,14 @@ const FSListItem = (props) => {
 				onClose={() => setIsInfoDialogOpened(false)}
 			/>
 
-			<FilePreviewDialog
-				file={props.fsElement}
-				storageId={params.id}
-				isOpened={isPreviewDialogOpened()}
-				onClose={() => setIsPreviewDialogOpened(false)}
-			/>
-
 			<ShareDialog
 				isOpened={isShareDialogOpened()}
 				link={shareLink()}
+				enabled={shareEnabled()}
+				isLoading={shareLoading()}
 				onClose={() => setIsShareDialogOpened(false)}
 				onCopy={copyShareLink}
+				onToggle={toggleShare}
 			/>
 		</>
 	)

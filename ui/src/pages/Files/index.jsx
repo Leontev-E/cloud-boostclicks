@@ -6,25 +6,19 @@ import ListItemIcon from '@suid/material/ListItemIcon'
 import ListItemText from '@suid/material/ListItemText'
 import UploadFileIcon from '@suid/icons-material/UploadFile'
 import UploadFolderIcon from '@suid/icons-material/DriveFolderUpload'
-import FolderOpenIcon from '@suid/icons-material/FolderOpen'
-import LockIcon from '@suid/icons-material/Lock'
 import Grid from '@suid/material/Grid'
 import Stack from '@suid/material/Stack'
 import Typography from '@suid/material/Typography'
 import Divider from '@suid/material/Divider'
-import Fab from '@suid/material/Fab'
-import ToggleButton from '@suid/material/ToggleButton'
-import ToggleButtonGroup from '@suid/material/ToggleButtonGroup'
-import AddIcon from '@suid/icons-material/Add'
+import Paper from '@suid/material/Paper'
 
 import API from '../../api'
 import FSListItem from '../../components/FSListItem'
 import Menu from '../../components/Menu'
 import CreateFolderDialog from '../../components/CreateFolderDialog'
 import { alertStore } from '../../components/AlertStack'
-import Access from '../../components/Access'
-import GrantAccess from '../../components/GrantAccess'
 import FilePreviewDialog from '../../components/FilePreviewDialog'
+import { checkAuth } from '../../common/auth_guard'
 
 const Files = () => {
 	const { addAlert } = alertStore
@@ -36,16 +30,8 @@ const Files = () => {
 	 * @type {[import("solid-js").Accessor<import("../../api").Storage>, any]}
 	 */
 	const [storage, setStorage] = createSignal()
-	const [isAccessPage, setIsAccessPage] = createSignal(false)
 	const [isCreateFolderDialogOpen, setIsCreateFolderDialogOpen] =
 		createSignal(false)
-	const [isGrantAccessButtonVisible, setIsGrantButtonAccessVisible] =
-		createSignal(false)
-	const [isGrantAccessVisible, setIsGrantAccessVisible] = createSignal(false)
-	/**
-	 * @type {[import("solid-js").Accessor<import("../api").UserWithAccess[]>, any]}
-	 */
-	const [users, setUsers] = createSignal([])
 	const [previewFile, setPreviewFile] = createSignal()
 	const navigate = useNavigate()
 	const params = useParams()
@@ -66,18 +52,6 @@ const Files = () => {
 	}
 
 	const getCurrentPath = () => decodePath(params.path || '')
-
-	const fetchUsersWithAccess = async () => {
-		try {
-			const users = await API.access.listUsersWithAccess(params.id)
-			setUsers(users)
-			setIsGrantButtonAccessVisible(true)
-		} catch (err) {
-			addAlert('Не удалось загрузить доступы. Попробуйте позже.', 'error')
-			console.error(err)
-			setIsGrantButtonAccessVisible(false)
-		}
-	}
 
 	const fetchStorage = async () => {
 		const storage = await API.storages.getStorage(params.id)
@@ -105,6 +79,7 @@ const Files = () => {
 	}
 
 	onMount(() => {
+		checkAuth()
 		Promise.all([fetchStorage(), fetchFSLayer()]).then()
 
 		// Either me or the solidjs-router creator is dumb af so I have to use this sht
@@ -188,111 +163,67 @@ const Files = () => {
 	return (
 		<>
 			<Stack container>
-				<Grid container sx={{ mb: 2 }} spacing={2}>
-					<Grid item xs={12} md={4}>
+				<Grid container sx={{ mb: 2 }} spacing={2} alignItems="center">
+					<Grid item xs={12} md={7}>
 						<Typography variant="h4">{storage()?.name}</Typography>
 						<Typography variant="body2" color="text.secondary">
-							Файлы и папки в этом облаке.
+							Путь: /{getCurrentPath() || 'корень'}
 						</Typography>
-					</Grid>
-
-					<Grid item xs={12} md={4}>
-						<ToggleButtonGroup
-							exclusive
-							value={isAccessPage()}
-							color="primary"
-							onChange={(_, val) => setIsAccessPage(val)}
-							sx={{
-								display: 'flex',
-								justifyContent: { xs: 'flex-start', md: 'center' },
-							}}
-						>
-							<ToggleButton value={false}>
-								<FolderOpenIcon fontSize="small" />
-								&nbsp; Файлы
-							</ToggleButton>
-							<ToggleButton value={true}>
-								<LockIcon fontSize="small" />
-								&nbsp; Доступ
-							</ToggleButton>
-						</ToggleButtonGroup>
+						<Typography variant="body2" color="text.secondary">
+							Клик по файлу — предпросмотр. Клик по папке — переход внутрь.
+						</Typography>
 					</Grid>
 
 					<Grid
 						item
 						xs={12}
-						md={4}
+						md={5}
 						sx={{
 							display: 'flex',
 							justifyContent: { xs: 'flex-start', md: 'flex-end' },
 						}}
 					>
-						<Show
-							when={!isAccessPage()}
-							fallback={
-								<Show when={isGrantAccessButtonVisible()}>
-									<Fab
-										variant="extended"
-										color="secondary"
-										onClick={() => setIsGrantAccessVisible(true)}
-									>
-										<AddIcon sx={{ mr: 1 }} />
-										Добавить доступ
-									</Fab>
-									<GrantAccess
-										isVisible={isGrantAccessVisible()}
-										afterGrant={fetchUsersWithAccess}
-										onClose={() => setIsGrantAccessVisible(false)}
-									/>
-								</Show>
-							}
-						>
-							<Menu button_title="Загрузить">
-								<MenuItem onClick={openCreateFolderDialog}>
-									<ListItemIcon>
-										<UploadFolderIcon />
-									</ListItemIcon>
-									<ListItemText>Папку</ListItemText>
-								</MenuItem>
-								<MenuItem onClick={uploadFileClickHandler}>
-									<ListItemIcon>
-										<UploadFileIcon />
-									</ListItemIcon>
-									<ListItemText>Файлы</ListItemText>
-								</MenuItem>
-								<MenuItem
-									onClick={() => navigate(`/storages/${params.id}/upload_to`)}
-								>
-									<ListItemIcon>
-										<UploadFileIcon />
-									</ListItemIcon>
-									<ListItemText>Файлы по пути</ListItemText>
-								</MenuItem>
-							</Menu>
-						</Show>
+						<Menu button_title="Загрузить">
+							<MenuItem onClick={openCreateFolderDialog}>
+								<ListItemIcon>
+									<UploadFolderIcon />
+								</ListItemIcon>
+								<ListItemText>Папку</ListItemText>
+							</MenuItem>
+							<MenuItem onClick={uploadFileClickHandler}>
+								<ListItemIcon>
+									<UploadFileIcon />
+								</ListItemIcon>
+								<ListItemText>Файлы</ListItemText>
+							</MenuItem>
+							<MenuItem
+								onClick={() => navigate(`/storages/${params.id}/upload_to`)}
+							>
+								<ListItemIcon>
+									<UploadFileIcon />
+								</ListItemIcon>
+								<ListItemText>Файлы по пути</ListItemText>
+							</MenuItem>
+						</Menu>
 					</Grid>
 				</Grid>
 
-				<Show
-					when={!isAccessPage()}
-					fallback={
-						<Access
-							setIsGrantAccessVisible={setIsGrantAccessVisible}
-							users={users()}
-							onMount={fetchUsersWithAccess}
-							refetchUsers={fetchUsersWithAccess}
-						/>
-					}
-				>
-					<Grid>
-						<Show
-							when={fsLayer().length}
-							fallback={<>Файлов пока нет</>}
-						>
-							<List sx={{ minWidth: 320, maxWidth: 540, mx: 'auto' }}>
-								<Divider />
-								{mapArray(fsLayer, (fsElement) => (
-									<>
+				<Grid>
+					<Show
+						when={fsLayer().length}
+						fallback={
+							<Paper sx={{ p: 3, textAlign: 'center' }}>
+								<Typography variant="h6">В этой папке пока пусто</Typography>
+								<Typography variant="body2" color="text.secondary">
+									Создайте папку или загрузите первые файлы.
+								</Typography>
+							</Paper>
+						}
+					>
+						<List sx={{ minWidth: 320, maxWidth: 540, mx: 'auto' }}>
+							<Divider />
+							{mapArray(fsLayer, (fsElement) => (
+								<>
 									<FSListItem
 										fsElement={fsElement}
 										storageId={params.id}
@@ -303,29 +234,28 @@ const Files = () => {
 								</>
 							))}
 						</List>
-						</Show>
-					</Grid>
+					</Show>
+				</Grid>
 
-					<CreateFolderDialog
-						isOpened={isCreateFolderDialogOpen()}
-						onCreate={createFolder}
-						onClose={closeCreateFolderDialog}
-					/>
-					<input
-						ref={uploadFileInputElement}
-						type="file"
-						multiple
-						style="display: none"
-						onChange={uploadFile}
-					/>
+				<CreateFolderDialog
+					isOpened={isCreateFolderDialogOpen()}
+					onCreate={createFolder}
+					onClose={closeCreateFolderDialog}
+				/>
+				<input
+					ref={uploadFileInputElement}
+					type="file"
+					multiple
+					style="display: none"
+					onChange={uploadFile}
+				/>
 
-					<FilePreviewDialog
-						file={previewFile()}
-						storageId={params.id}
-						isOpened={Boolean(previewFile())}
-						onClose={closePreview}
-					/>
-				</Show>
+				<FilePreviewDialog
+					file={previewFile()}
+					storageId={params.id}
+					isOpened={Boolean(previewFile())}
+					onClose={closePreview}
+				/>
 			</Stack>
 		</>
 	)
