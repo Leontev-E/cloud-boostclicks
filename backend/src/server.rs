@@ -48,8 +48,8 @@ impl Server {
                 "/storage_workers",
                 StorageWorkersRouter::get_router(app_state.clone()),
             )
-            // allow large uploads (up to ~1GB)
-            .layer(DefaultBodyLimit::max(1_024 * 1_024 * 1_024))
+            // allow very large uploads (disable Axum body limit; rely on infra limits)
+            .layer(DefaultBodyLimit::disable())
             .layer(ConcurrencyLimitLayer::new(workers.into()))
             .layer(app_cors)
     }
