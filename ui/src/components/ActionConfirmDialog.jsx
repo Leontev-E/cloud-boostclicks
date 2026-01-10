@@ -33,7 +33,7 @@ const ActionConfirmDialog = (props) => {
 
 			<DialogActions>
 				<Button onClick={props.onConfirm} color="warning">
-					Подтвердить
+					Удалить
 				</Button>
 				<Button onClick={props.onCancel} color="info">
 					Отмена

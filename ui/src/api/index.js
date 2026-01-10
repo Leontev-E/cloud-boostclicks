@@ -259,6 +259,12 @@ const uploadFileTo = async (storage_id, path, file) => {
 	)
 }
 
+const encodePath = (path = '') =>
+	path
+		.split('/')
+		.map((segment) => encodeURIComponent(segment))
+		.join('/')
+
 /**
  * @typedef {Object} FSElement
  * @property {string} path
@@ -274,8 +280,9 @@ const uploadFileTo = async (storage_id, path, file) => {
  * @returns {Promise<FSElement[]>}
  */
 const getFSLayer = async (storage_id, path) => {
+	const safePath = encodePath(path || '')
 	return await apiRequest(
-		`/storages/${storage_id}/files/tree/${path}`,
+		`/storages/${storage_id}/files/tree/${safePath}`,
 		'get',
 		getAuthToken()
 	)
@@ -288,8 +295,28 @@ const getFSLayer = async (storage_id, path) => {
  * @returns {Promise<Blob>}
  */
 const download = async (storage_id, path) => {
+	const safePath = encodePath(path || '')
 	const response = await apiRequest(
-		`/storages/${storage_id}/files/download/${path}`,
+		`/storages/${storage_id}/files/download/${safePath}`,
+		'get',
+		getAuthToken(),
+		undefined,
+		true
+	)
+
+	return await response.blob()
+}
+
+/**
+ *
+ * @param {string} storage_id
+ * @param {string} path
+ * @returns {Promise<Blob>}
+ */
+const downloadFolder = async (storage_id, path) => {
+	const safePath = encodePath(path || '')
+	const response = await apiRequest(
+		`/storages/${storage_id}/files/download_folder/${safePath}`,
 		'get',
 		getAuthToken(),
 		undefined,
@@ -305,11 +332,84 @@ const download = async (storage_id, path) => {
  * @param {string} path
  */
 const deleteFile = async (storage_id, path) => {
-	await apiRequest(
-		`/storages/${storage_id}/files/${path}`,
+	const safePath = encodePath(path || '')
+	return await apiRequest(
+		`/storages/${storage_id}/files/${safePath}`,
 		'delete',
 		getAuthToken()
 	)
+}
+
+/**
+ *
+ * @param {string} storage_id
+ * @param {string} path
+ * @param {boolean} is_folder
+ * @returns {Promise<{id: string}>}
+ */
+const createShare = async (storage_id, path, is_folder) => {
+	return await apiRequest(
+		`/storages/${storage_id}/files/share`,
+		'post',
+		getAuthToken(),
+		{ path, is_folder }
+	)
+}
+
+/**
+ * @typedef {Object} ShareInfo
+ * @property {string} id
+ * @property {string} path
+ * @property {boolean} is_folder
+ * @property {string} name
+ */
+
+/**
+ * @param {string} share_id
+ * @returns {Promise<ShareInfo>}
+ */
+const getShare = async (share_id) => {
+	return await apiRequest(`/shares/${share_id}`, 'get')
+}
+
+/**
+ * @param {string} share_id
+ * @returns {Promise<FSElement[]>}
+ */
+const listSharedFolder = async (share_id) => {
+	return await apiRequest(`/shares/${share_id}/tree`, 'get')
+}
+
+/**
+ * @param {string} share_id
+ * @returns {Promise<Blob>}
+ */
+const downloadShared = async (share_id) => {
+	const response = await apiRequest(
+		`/shares/${share_id}/download`,
+		'get',
+		undefined,
+		undefined,
+		true
+	)
+
+	return await response.blob()
+}
+
+/**
+ * @param {string} share_id
+ * @returns {Promise<Blob>}
+ */
+const downloadSharedFolder = async (share_id) => {
+	const response = await apiRequest(
+		`/shares/${share_id}/download_folder`,
+		'get',
+		undefined,
+		undefined,
+		true
+	)
+
+	return await response.blob()
 }
 
 /////////////////////////////////////////////////////////////
@@ -344,7 +444,15 @@ const API = {
 		uploadFileTo,
 		getFSLayer,
 		download,
+		downloadFolder,
 		deleteFile,
+		createShare,
+	},
+	shares: {
+		getShare,
+		listSharedFolder,
+		downloadShared,
+		downloadSharedFolder,
 	},
 }
 

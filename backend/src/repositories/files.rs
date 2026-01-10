@@ -7,6 +7,7 @@ use crate::common::db::errors::map_not_found;
 use crate::errors::{CloudBoostclicksError, CloudBoostclicksResult};
 use crate::models::file_chunks::FileChunk;
 use crate::models::files::{DBFSElement, FSElement, File, InFile, SearchFSElement};
+use crate::schemas::files::DeleteSummary;
 
 pub const FILES_TABLE: &str = "files";
 pub const CHUNKS_TABLE: &str = "file_chunks";
@@ -289,12 +290,82 @@ impl<'d> FilesRepository<'d> {
         .map_err(|e| map_not_found(e, "file"))
     }
 
+    pub async fn get_uploaded_file_by_path(
+        &self,
+        path: &str,
+        storage_id: Uuid,
+    ) -> CloudBoostclicksResult<File> {
+        sqlx::query_as(
+            format!(
+                "SELECT * FROM {FILES_TABLE} WHERE storage_id = $1 AND path = $2 AND is_uploaded = true"
+            )
+            .as_str(),
+        )
+        .bind(storage_id)
+        .bind(path)
+        .fetch_one(self.db)
+        .await
+        .map_err(|e| map_not_found(e, "file"))
+    }
+
     pub async fn list_chunks_of_file(&self, file_id: Uuid) -> CloudBoostclicksResult<Vec<FileChunk>> {
         sqlx::query_as(format!("SELECT * FROM {CHUNKS_TABLE} WHERE file_id = $1").as_str())
             .bind(file_id)
             .fetch_all(self.db)
             .await
             .map_err(|e| map_not_found(e, "file chunks"))
+    }
+
+    pub async fn folder_exists(
+        &self,
+        storage_id: Uuid,
+        prefix: &str,
+    ) -> CloudBoostclicksResult<bool> {
+        let (exists,): (bool,) = sqlx::query_as(
+            format!(
+                "
+                SELECT EXISTS(
+                    SELECT 1
+                    FROM {FILES_TABLE}
+                    WHERE storage_id = $1 AND is_uploaded AND path LIKE $2 || '%'
+                );
+            "
+            )
+            .as_str(),
+        )
+        .bind(storage_id)
+        .bind(prefix)
+        .fetch_one(self.db)
+        .await
+        .map_err(|_| CloudBoostclicksError::Unknown)?;
+
+        Ok(exists)
+    }
+
+    pub async fn list_files_in_folder(
+        &self,
+        storage_id: Uuid,
+        prefix: &str,
+    ) -> CloudBoostclicksResult<Vec<File>> {
+        sqlx::query_as(
+            format!(
+                "
+                SELECT *
+                FROM {FILES_TABLE}
+                WHERE storage_id = $1
+                    AND is_uploaded
+                    AND path NOT LIKE '%/'
+                    AND path LIKE $2 || '%'
+                ORDER BY path ASC;
+            "
+            )
+            .as_str(),
+        )
+        .bind(storage_id)
+        .bind(prefix)
+        .fetch_all(self.db)
+        .await
+        .map_err(|_| CloudBoostclicksError::Unknown)
     }
 
     pub async fn set_as_uploaded(&self, file_id: Uuid) -> CloudBoostclicksResult<()> {
@@ -342,53 +413,156 @@ impl<'d> FilesRepository<'d> {
             .map(|_| ())
     }
 
-    pub async fn delete(&self, path: &str, storage_id: Uuid) -> CloudBoostclicksResult<()> {
+    pub async fn delete(
+        &self,
+        path: &str,
+        storage_id: Uuid,
+    ) -> CloudBoostclicksResult<DeleteSummary> {
         let mut transaction = self.db.begin().await.map_err(|e| map_not_found(e, ""))?;
 
-        let where_path = if path.ends_with("/") {
-            // for folders
-            "LIKE $2 || '%'"
-        } else {
-            // for files
-            "= $2"
-        };
+        let mut is_folder = path.ends_with("/");
+        let mut delete_path = path.to_string();
 
-        // deleting file
-        sqlx::query(&format!(
-            "
-            DELETE FROM {FILES_TABLE}
-            WHERE storage_id = $1 AND path {where_path};
-            "
-        ))
-        .bind(storage_id)
-        .bind(path)
-        .execute(&mut *transaction)
-        .await
-        .map_err(|e| map_not_found(e, "file"))?;
+        if !is_folder {
+            let (file_exists,): (bool,) = sqlx::query_as(
+                format!(
+                    "SELECT EXISTS(SELECT 1 FROM {FILES_TABLE} WHERE storage_id = $1 AND path = $2)"
+                )
+                .as_str(),
+            )
+            .bind(storage_id)
+            .bind(path)
+            .fetch_one(&mut *transaction)
+            .await
+            .map_err(|_| CloudBoostclicksError::Unknown)?;
 
-        // creating a folder if it was the file in the folder
-        if let Some(parent) = Path::new(path).parent().map(|path| path.to_str().unwrap()) {
-            let new_id = Uuid::new_v4();
-            let parent = format!("{parent}/");
+            if !file_exists {
+                let folder_path = format!("{path}/");
+                let (folder_exists,): (bool,) = sqlx::query_as(
+                    format!(
+                        "SELECT EXISTS(SELECT 1 FROM {FILES_TABLE} WHERE storage_id = $1 AND path LIKE $2 || '%')"
+                    )
+                    .as_str(),
+                )
+                .bind(storage_id)
+                .bind(&folder_path)
+                .fetch_one(&mut *transaction)
+                .await
+                .map_err(|_| CloudBoostclicksError::Unknown)?;
+
+                if folder_exists {
+                    delete_path = folder_path;
+                    is_folder = true;
+                } else {
+                    return Err(CloudBoostclicksError::DoesNotExist(
+                        "файл или папка".to_string(),
+                    ));
+                }
+            }
+        }
+
+        let (deleted_files, deleted_folders): (i64, i64) = if is_folder {
+            let counts: (i64, i64) = sqlx::query_as(
+                format!(
+                    "
+                    SELECT
+                        COUNT(*) FILTER (WHERE path NOT LIKE '%/'),
+                        COUNT(*) FILTER (WHERE path LIKE '%/')
+                    FROM {FILES_TABLE}
+                    WHERE storage_id = $1 AND path LIKE $2 || '%';
+                "
+                )
+                .as_str(),
+            )
+            .bind(storage_id)
+            .bind(&delete_path)
+            .fetch_one(&mut *transaction)
+            .await
+            .map_err(|_| CloudBoostclicksError::Unknown)?;
+
+            if counts.0 + counts.1 == 0 {
+                return Err(CloudBoostclicksError::DoesNotExist("папка".to_string()));
+            }
 
             sqlx::query(&format!(
                 "
-                INSERT INTO {FILES_TABLE} (id, path, size, storage_id, is_uploaded)
-                SELECT $1, $2, 0, $3, true
-                WHERE
-                    NOT EXISTS (
-                        SELECT id
-                        FROM {FILES_TABLE}
-                        WHERE storage_id = $3 AND path LIKE $2 || '%'
-                    );
-            "
+                DELETE FROM {FILES_TABLE}
+                WHERE storage_id = $1 AND path LIKE $2 || '%';
+                "
             ))
-            .bind(new_id)
-            .bind(parent)
             .bind(storage_id)
+            .bind(&delete_path)
             .execute(&mut *transaction)
             .await
-            .map_err(|e| map_not_found(e, "some entity"))?;
+            .map_err(|_| CloudBoostclicksError::Unknown)?;
+
+            counts
+        } else {
+            let counts: (i64, i64) = sqlx::query_as(
+                format!(
+                    "
+                    SELECT
+                        COUNT(*) FILTER (WHERE path NOT LIKE '%/'),
+                        COUNT(*) FILTER (WHERE path LIKE '%/')
+                    FROM {FILES_TABLE}
+                    WHERE storage_id = $1 AND path = $2;
+                "
+                )
+                .as_str(),
+            )
+            .bind(storage_id)
+            .bind(&delete_path)
+            .fetch_one(&mut *transaction)
+            .await
+            .map_err(|_| CloudBoostclicksError::Unknown)?;
+
+            if counts.0 == 0 {
+                return Err(CloudBoostclicksError::DoesNotExist("файл".to_string()));
+            }
+
+            sqlx::query(&format!(
+                "
+                DELETE FROM {FILES_TABLE}
+                WHERE storage_id = $1 AND path = $2;
+                "
+            ))
+            .bind(storage_id)
+            .bind(&delete_path)
+            .execute(&mut *transaction)
+            .await
+            .map_err(|_| CloudBoostclicksError::Unknown)?;
+
+            counts
+        };
+
+        // creating a folder if it was the file in the folder
+        if !is_folder {
+            if let Some(parent) = Path::new(&delete_path)
+                .parent()
+                .map(|path| path.to_str().unwrap())
+            {
+                let new_id = Uuid::new_v4();
+                let parent = format!("{parent}/");
+
+                sqlx::query(&format!(
+                    "
+                    INSERT INTO {FILES_TABLE} (id, path, size, storage_id, is_uploaded)
+                    SELECT $1, $2, 0, $3, true
+                    WHERE
+                        NOT EXISTS (
+                            SELECT id
+                            FROM {FILES_TABLE}
+                            WHERE storage_id = $3 AND path LIKE $2 || '%'
+                        );
+                "
+                ))
+                .bind(new_id)
+                .bind(parent)
+                .bind(storage_id)
+                .execute(&mut *transaction)
+                .await
+                .map_err(|e| map_not_found(e, "some entity"))?;
+            }
         }
 
         transaction
@@ -396,7 +570,7 @@ impl<'d> FilesRepository<'d> {
             .await
             .map_err(|e| map_not_found(e, ""))?;
 
-        Ok(())
+        Ok(DeleteSummary::new(deleted_files, deleted_folders))
     }
 }
 

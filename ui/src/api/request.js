@@ -1,6 +1,21 @@
 import { alertStore } from '../components/AlertStack'
+import createLocalStore from '../../libs'
 
 const API_BASE = import.meta.env.VITE_API_BASE || 'http://localhost:8000/api'
+
+const handleUnauthorized = () => {
+	const [store, setStore] = createLocalStore()
+
+	if (store.access_token) {
+		setStore('access_token', null)
+		setStore('user', null)
+		setStore('redirect', window.location.pathname)
+	}
+
+	if (window.location.pathname !== '/login') {
+		window.location.href = '/login'
+	}
+}
 
 /**
  * @typedef {'get' | 'post' | 'patch' | 'delete'} Method
@@ -38,6 +53,10 @@ const apiRequest = async (
 			body: JSON.stringify(body),
 			headers,
 		})
+
+		if (response.status === 401) {
+			handleUnauthorized()
+		}
 
 		if (!response.ok) {
 			throw new Error(await response.text())
@@ -81,6 +100,10 @@ export const apiMultipartRequest = async (path, auth_token, form) => {
 			body: form,
 			headers,
 		})
+
+		if (response.status === 401) {
+			handleUnauthorized()
+		}
 
 		if (!response.ok) {
 			throw new Error(await response.text())

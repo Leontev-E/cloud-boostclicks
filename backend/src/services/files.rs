@@ -11,6 +11,7 @@ use crate::{
             UploadFileData,
         },
         jwt_manager::AuthUser,
+        zip::build_zip,
     },
     errors::{CloudBoostclicksError, CloudBoostclicksResult},
     models::{
@@ -22,6 +23,7 @@ use crate::{
     },
     schemas::files::{InFileSchema, InFolderSchema},
 };
+use crate::schemas::files::DeleteSummary;
 
 pub struct FilesService<'d> {
     repo: FilesRepository<'d>,
@@ -197,29 +199,7 @@ impl<'d> FilesService<'d> {
         // 2. getting file by path
         let file = self.repo.get_file_by_path(path, storage_id).await?;
 
-        // 3. sending task to storage manager
-        let (resp_tx, resp_rx) = oneshot::channel();
-
-        let message = {
-            let download_file_data = DownloadFileData {
-                file_id: file.id,
-                storage_id,
-                user_id: user.id,
-            };
-            ClientMessage {
-                data: ClientData::DownloadFile(download_file_data),
-                tx: resp_tx,
-            }
-        };
-
-        tracing::debug!("sending task to manager");
-        let _ = self.tx.send(message).await;
-
-        // 4. waiting for a storage manager result
-        match resp_rx.await.unwrap().data {
-            StorageManagerData::DownloadFile(r) => r,
-            _ => unimplemented!(),
-        }
+        self.download_file_by_id(file.id, storage_id, user.id).await
     }
 
     pub async fn list_dir(
@@ -231,6 +211,52 @@ impl<'d> FilesService<'d> {
         check_access(&self.access_repo, user.id, storage_id, &AccessType::R).await?;
 
         self.repo.list_dir(storage_id, path).await
+    }
+
+    pub async fn download_folder(
+        &self,
+        path: &str,
+        storage_id: Uuid,
+        user: &AuthUser,
+    ) -> CloudBoostclicksResult<Vec<u8>> {
+        check_access(&self.access_repo, user.id, storage_id, &AccessType::R).await?;
+
+        if !Self::validate_path(path) {
+            return Err(CloudBoostclicksError::InvalidPath);
+        }
+
+        let folder_path = path.trim_end_matches('/');
+        let prefix = if folder_path.is_empty() {
+            "".to_string()
+        } else {
+            format!("{folder_path}/")
+        };
+
+        let files = self
+            .repo
+            .list_files_in_folder(storage_id, &prefix)
+            .await?;
+
+        if files.is_empty() {
+            return Err(CloudBoostclicksError::DoesNotExist("папка".to_string()));
+        }
+
+        let mut zipped_files = Vec::with_capacity(files.len());
+        for file in files {
+            let data = self
+                .download_file_by_id(file.id, storage_id, user.id)
+                .await?;
+
+            let rel_path = if prefix.is_empty() {
+                file.path.clone()
+            } else {
+                file.path.strip_prefix(&prefix).unwrap_or(&file.path).to_string()
+            };
+
+            zipped_files.push((rel_path, data));
+        }
+
+        build_zip(zipped_files)
     }
 
     pub async fn search(
@@ -269,7 +295,7 @@ impl<'d> FilesService<'d> {
         path: &str,
         storage_id: Uuid,
         user: &AuthUser,
-    ) -> CloudBoostclicksResult<()> {
+    ) -> CloudBoostclicksResult<DeleteSummary> {
         // 0. checking access
         check_access(&self.access_repo, user.id, storage_id, &AccessType::W).await?;
 
@@ -292,6 +318,35 @@ impl<'d> FilesService<'d> {
 
     fn validate_path(path: &str) -> bool {
         !path.starts_with(r"/") && !path.contains(r"//")
+    }
+
+    async fn download_file_by_id(
+        &self,
+        file_id: Uuid,
+        storage_id: Uuid,
+        user_id: Uuid,
+    ) -> CloudBoostclicksResult<Vec<u8>> {
+        let (resp_tx, resp_rx) = oneshot::channel();
+
+        let message = {
+            let download_file_data = DownloadFileData {
+                file_id,
+                storage_id,
+                user_id,
+            };
+            ClientMessage {
+                data: ClientData::DownloadFile(download_file_data),
+                tx: resp_tx,
+            }
+        };
+
+        tracing::debug!("sending task to manager");
+        let _ = self.tx.send(message).await;
+
+        match resp_rx.await.unwrap().data {
+            StorageManagerData::DownloadFile(r) => r,
+            _ => unimplemented!(),
+        }
     }
 }
 

@@ -111,6 +111,20 @@ pub async fn init_db(db: &PgPool) {
         );
     ",
         "
+        CREATE TABLE IF NOT EXISTS shares (
+            id         UUID         PRIMARY KEY,
+            storage_id UUID         NOT NULL REFERENCES storages
+                                           ON DELETE CASCADE
+                                           ON UPDATE CASCADE,
+            path       VARCHAR      NOT NULL,
+            is_folder  bool         NOT NULL,
+            created_by UUID         REFERENCES users
+                                           ON DELETE SET NULL
+                                           ON UPDATE CASCADE,
+            created_at TIMESTAMP    DEFAULT NOW()
+        );
+    ",
+        "
         CREATE TABLE IF NOT EXISTS files (
             id          UUID         PRIMARY KEY,
             path        VARCHAR      NOT NULL,

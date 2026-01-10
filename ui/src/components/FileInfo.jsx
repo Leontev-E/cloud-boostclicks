@@ -20,21 +20,19 @@ import { convertSize } from '../common/size_converter'
  */
 const FileInfoDialog = (props) => {
 	return (
-		<>
-			<Dialog open={props.isOpened} onClose={props.onClose}>
-				<DialogTitle sx={{ textAlign: 'center' }}>
-					Информация о файле
-				</DialogTitle>
-				<DialogContent>
-					<Grid container spacing={4}>
-						<Grid item>
-							<Typography fontStyle="italic">Размер</Typography>
-						</Grid>
-						<Grid item>{convertSize(props.file.size)}</Grid>
+		<Dialog open={props.isOpened} onClose={props.onClose}>
+			<DialogTitle sx={{ textAlign: 'center' }}>
+				Информация о файле
+			</DialogTitle>
+			<DialogContent>
+				<Grid container spacing={4}>
+					<Grid item>
+						<Typography fontStyle="italic">Размер</Typography>
 					</Grid>
-				</DialogContent>
-			</Dialog>
-		</>
+					<Grid item>{convertSize(props.file.size)}</Grid>
+				</Grid>
+			</DialogContent>
+		</Dialog>
 	)
 }
 

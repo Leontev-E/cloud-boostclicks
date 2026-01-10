@@ -12,6 +12,7 @@ import Files from './pages/Files'
 import UploadFileTo from './pages/Files/UploadFileTo'
 import Register from './pages/Register'
 import NotFound from './pages/404'
+import Share from './pages/Share'
 
 const theme = createTheme({
 	palette: {
@@ -105,6 +106,7 @@ const App = () => {
 			<Routes>
 				<Route path="/login" component={Login} />
 				<Route path="/register" component={Register} />
+				<Route path="/share/:id" component={Share} />
 
 				<Route path="/" component={BasicLayout}>
 					<Route path="/" element={<Navigate href="/storages" />} />

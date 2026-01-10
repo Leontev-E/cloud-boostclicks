@@ -21,9 +21,12 @@ use crate::{
     errors::{CloudBoostclicksError, CloudBoostclicksResult},
     models::files::InFile,
     schemas::files::{
-        InFileSchema, InFolderSchema, SearchQuery, UploadParams, IN_FILE_SCHEMA_FIELDS_AMOUNT,
+        DeleteSummary, InFileSchema, InFolderSchema, SearchQuery, UploadParams,
+        IN_FILE_SCHEMA_FIELDS_AMOUNT,
     },
+    schemas::shares::{CreateShareSchema, ShareCreatedSchema},
     services::files::FilesService,
+    services::shares::SharesService,
 };
 
 pub struct FilesRouter;
@@ -31,6 +34,7 @@ pub struct FilesRouter;
 impl FilesRouter {
     pub fn get_router(state: Arc<AppState>) -> Router<Arc<AppState>, axum::body::Body> {
         Router::new()
+            .route("/share", post(Self::create_share))
             .route("/create_folder", post(Self::create_folder))
             .route("/upload", post(Self::upload))
             .route("/upload_to", post(Self::upload_to))
@@ -53,6 +57,7 @@ impl FilesRouter {
         match root_path {
             "tree" => Self::tree(state, user, storage_id, path).await,
             "download" => Self::download(state, user, storage_id, path).await,
+            "download_folder" => Self::download_folder(state, user, storage_id, path).await,
             "search" => {
                 if let Some(search_path) = query.0.search_path {
                     Self::search(state, user, storage_id, path, &search_path).await
@@ -218,6 +223,40 @@ impl FilesRouter {
             .map_err(|e| <(StatusCode, String)>::from(e))
     }
 
+    async fn download_folder(
+        state: Arc<AppState>,
+        user: AuthUser,
+        storage_id: Uuid,
+        path: &str,
+    ) -> Result<Response, (StatusCode, String)> {
+        FilesService::new(&state.db, state.tx.clone())
+            .download_folder(path, storage_id, &user)
+            .await
+            .map(|data| {
+                let folder_name = if path.is_empty() {
+                    "cloud"
+                } else {
+                    Path::new(&path.trim_end_matches('/'))
+                        .file_name()
+                        .map(|name| name.to_str().unwrap_or_default())
+                        .unwrap_or("folder")
+                };
+
+                let bytes = Bytes::from(data);
+                let body = Full::new(bytes);
+                let headers = AppendHeaders([
+                    (header::CONTENT_TYPE, "application/zip".to_string()),
+                    (
+                        header::CONTENT_DISPOSITION,
+                        format!("attachment; filename=\"{folder_name}.zip\""),
+                    ),
+                ]);
+
+                (headers, body).into_response()
+            })
+            .map_err(|e| <(StatusCode, String)>::from(e))
+    }
+
     ///
     /// Need path with trailing slash
     ///
@@ -239,12 +278,26 @@ impl FilesRouter {
         State(state): State<Arc<AppState>>,
         Extension(user): Extension<AuthUser>,
         RoutePath((storage_id, path)): RoutePath<(Uuid, String)>,
-    ) -> Result<(), (StatusCode, String)> {
-        FilesService::new(&state.db, state.tx.clone())
+    ) -> Result<Json<DeleteSummary>, (StatusCode, String)> {
+        let result = FilesService::new(&state.db, state.tx.clone())
             .delete(&path, storage_id, &user)
             .await
             .map_err(|e| <(StatusCode, String)>::from(e))?;
 
-        Ok(())
+        Ok(Json(result))
+    }
+
+    async fn create_share(
+        State(state): State<Arc<AppState>>,
+        Extension(user): Extension<AuthUser>,
+        RoutePath(storage_id): RoutePath<Uuid>,
+        Json(in_schema): Json<CreateShareSchema>,
+    ) -> Result<Json<ShareCreatedSchema>, (StatusCode, String)> {
+        let share = SharesService::new(&state.db, state.tx.clone())
+            .create(storage_id, in_schema, &user)
+            .await
+            .map_err(|e| <(StatusCode, String)>::from(e))?;
+
+        Ok(Json(ShareCreatedSchema::new(share.id)))
     }
 }

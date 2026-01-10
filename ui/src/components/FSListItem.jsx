@@ -11,12 +11,17 @@ import MoreVertIcon from '@suid/icons-material/MoreVert'
 import DownloadIcon from '@suid/icons-material/Download'
 import InfoIcon from '@suid/icons-material/Info'
 import DeleteIcon from '@suid/icons-material/Delete'
+import ShareIcon from '@suid/icons-material/Share'
+import PreviewIcon from '@suid/icons-material/VisibilityOutlined'
 import { Show, createSignal } from 'solid-js'
 import { useNavigate, useParams } from '@solidjs/router'
 
 import API from '../api'
 import ActionConfirmDialog from './ActionConfirmDialog'
 import FileInfoDialog from './FileInfo'
+import { alertStore } from './AlertStack'
+import FilePreviewDialog from './FilePreviewDialog'
+import ShareDialog from './ShareDialog'
 
 /**
  * @typedef {Object} FSListItemProps
@@ -35,8 +40,12 @@ const FSListItem = (props) => {
 	const [isActionConfirmDialogOpened, setIsActionConfirmDialogOpened] =
 		createSignal(false)
 	const [isInfoDialogOpened, setIsInfoDialogOpened] = createSignal(false)
+	const [isPreviewDialogOpened, setIsPreviewDialogOpened] = createSignal(false)
+	const [isShareDialogOpened, setIsShareDialogOpened] = createSignal(false)
+	const [shareLink, setShareLink] = createSignal('')
 	const navigate = useNavigate()
 	const params = useParams()
+	const { addAlert } = alertStore
 
 	const openMore = () => Boolean(moreAnchorEl())
 
@@ -59,19 +68,30 @@ const FSListItem = (props) => {
 	}
 
 	const download = async () => {
-		const blob = await API.files.download(params.id, props.fsElement.path)
+		try {
+			const blob = props.fsElement.is_file
+				? await API.files.download(params.id, props.fsElement.path)
+				: await API.files.downloadFolder(
+						params.id,
+						`${props.fsElement.path.replace(/\/?$/, '/')}`
+				  )
 
-		const href = URL.createObjectURL(blob)
-		const a = Object.assign(document.createElement('a'), {
-			href,
-			style: 'display: none',
-			download: props.fsElement.name,
-		})
-		document.body.appendChild(a)
+			const href = URL.createObjectURL(blob)
+			const a = Object.assign(document.createElement('a'), {
+				href,
+				style: 'display: none',
+				download: props.fsElement.is_file
+					? props.fsElement.name
+					: `${props.fsElement.name}.zip`,
+			})
+			document.body.appendChild(a)
 
-		a.click()
-		URL.revokeObjectURL(href)
-		a.remove()
+			a.click()
+			URL.revokeObjectURL(href)
+			a.remove()
+		} catch (err) {
+			addAlert('Не удалось скачать файл. Попробуйте позже.', 'error')
+		}
 	}
 
 	const openActionConfirmDialog = () => {
@@ -82,11 +102,69 @@ const FSListItem = (props) => {
 		setIsActionConfirmDialogOpened(false)
 	}
 
+	const openPreviewDialog = () => {
+		handleCloseMore()
+		setIsPreviewDialogOpened(true)
+	}
+
+	const openShareDialog = async () => {
+		handleCloseMore()
+
+		const sharePath = props.fsElement.is_file
+			? props.fsElement.path
+			: `${props.fsElement.path.replace(/\/?$/, '/')}`
+
+		try {
+			const response = await API.files.createShare(
+				params.id,
+				sharePath,
+				!props.fsElement.is_file
+			)
+
+			const link = `${window.location.origin}/share/${response.id}`
+			setShareLink(link)
+			setIsShareDialogOpened(true)
+		} catch (err) {
+			addAlert('Не удалось создать ссылку. Попробуйте позже.', 'error')
+		}
+	}
+
+	const copyShareLink = async () => {
+		try {
+			await navigator.clipboard.writeText(shareLink())
+			addAlert('Ссылка скопирована', 'success')
+		} catch (err) {
+			addAlert('Не удалось скопировать ссылку', 'error')
+		}
+	}
+
 	const deleteFile = async () => {
 		closeActionConfirmDialog()
-		await API.files.deleteFile(params.id, props.fsElement.path)
-		props.onDelete()
+		const deletePath = props.fsElement.is_file
+			? props.fsElement.path
+			: `${props.fsElement.path.replace(/\/?$/, '/')}`
+
+		try {
+			const result = await API.files.deleteFile(params.id, deletePath)
+			if (props.fsElement.is_file) {
+				addAlert(`Файл "${props.fsElement.name}" удален`, 'success')
+			} else if (result?.deleted_files > 0) {
+				addAlert(
+					`Папка "${props.fsElement.name}" удалена вместе с файлами (${result.deleted_files})`,
+					'success'
+				)
+			} else {
+				addAlert(`Папка "${props.fsElement.name}" удалена`, 'success')
+			}
+			props.onDelete()
+		} catch (err) {
+			addAlert('Не удалось удалить элемент. Попробуйте позже.', 'error')
+		}
 	}
+
+	const deleteDescription = props.fsElement.is_file
+		? `Удалить "${props.fsElement.name}"`
+		: `Удалить папку "${props.fsElement.name}". Все файлы внутри будут удалены`
 
 	return (
 		<>
@@ -114,6 +192,15 @@ const FSListItem = (props) => {
 				onClose={handleCloseMore}
 				MenuListProps={{ 'aria-labelledby': 'basic-button' }}
 			>
+				<Show when={props.fsElement.is_file}>
+					<MenuItem onClick={openPreviewDialog}>
+						<ListItemIcon>
+							<PreviewIcon fontSize="small" />
+						</ListItemIcon>
+						<ListItemText>Предпросмотр</ListItemText>
+					</MenuItem>
+				</Show>
+
 				<MenuItem onClick={() => setIsInfoDialogOpened(true)}>
 					<ListItemIcon>
 						<InfoIcon fontSize="small" />
@@ -121,11 +208,20 @@ const FSListItem = (props) => {
 					<ListItemText>Информация</ListItemText>
 				</MenuItem>
 
-				<MenuItem onClick={download} disabled={!props.fsElement.is_file}>
+				<MenuItem onClick={download}>
 					<ListItemIcon>
 						<DownloadIcon fontSize="small" />
 					</ListItemIcon>
-					<ListItemText>Скачать</ListItemText>
+					<ListItemText>
+						{props.fsElement.is_file ? 'Скачать' : 'Скачать папку'}
+					</ListItemText>
+				</MenuItem>
+
+				<MenuItem onClick={openShareDialog}>
+					<ListItemIcon>
+						<ShareIcon fontSize="small" />
+					</ListItemIcon>
+					<ListItemText>Поделиться</ListItemText>
 				</MenuItem>
 
 				<MenuItem onClick={openActionConfirmDialog}>
@@ -139,7 +235,7 @@ const FSListItem = (props) => {
 			<ActionConfirmDialog
 				action="Удалить"
 				entity="элемент"
-				actionDescription={`Удалить "${props.fsElement.name}"`}
+				actionDescription={deleteDescription}
 				isOpened={isActionConfirmDialogOpened()}
 				onConfirm={deleteFile}
 				onCancel={closeActionConfirmDialog}
@@ -149,6 +245,20 @@ const FSListItem = (props) => {
 				file={props.fsElement}
 				isOpened={isInfoDialogOpened()}
 				onClose={() => setIsInfoDialogOpened(false)}
+			/>
+
+			<FilePreviewDialog
+				file={props.fsElement}
+				storageId={params.id}
+				isOpened={isPreviewDialogOpened()}
+				onClose={() => setIsPreviewDialogOpened(false)}
+			/>
+
+			<ShareDialog
+				isOpened={isShareDialogOpened()}
+				link={shareLink()}
+				onClose={() => setIsShareDialogOpened(false)}
+				onCopy={copyShareLink}
 			/>
 		</>
 	)

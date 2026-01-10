@@ -10,8 +10,8 @@ use tower_http::{
 use crate::{
     common::routing::app_state::AppState,
     routers::{
-        auth::AuthRouter, storage_workers::StorageWorkersRouter, storages::StoragesRouter,
-        users::UsersRouter,
+        auth::AuthRouter, shares::SharesRouter, storage_workers::StorageWorkersRouter,
+        storages::StoragesRouter, users::UsersRouter,
     },
 };
 
@@ -43,6 +43,7 @@ impl Server {
             .nest("/users", UsersRouter::get_router(app_state.clone()))
             .nest("/auth", AuthRouter::get_router(app_state.clone()))
             .nest("/storages", StoragesRouter::get_router(app_state.clone()))
+            .nest("/shares", SharesRouter::get_router(app_state.clone()))
             .nest(
                 "/storage_workers",
                 StorageWorkersRouter::get_router(app_state.clone()),

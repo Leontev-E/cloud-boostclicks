@@ -58,6 +58,21 @@ impl DownloadedChunkSchema {
     }
 }
 
+#[derive(Serialize)]
+pub struct DeleteSummary {
+    pub deleted_files: i64,
+    pub deleted_folders: i64,
+}
+
+impl DeleteSummary {
+    pub fn new(deleted_files: i64, deleted_folders: i64) -> Self {
+        Self {
+            deleted_files,
+            deleted_folders,
+        }
+    }
+}
+
 #[derive(Deserialize)]
 pub struct SearchQuery {
     pub search_path: Option<String>,
