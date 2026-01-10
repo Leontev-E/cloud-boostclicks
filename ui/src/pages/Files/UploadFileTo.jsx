@@ -6,7 +6,8 @@ import Typography from '@suid/material/Typography'
 import { useNavigate, useParams } from '@solidjs/router'
 import Stack from '@suid/material/Stack'
 import ChevronLeftIcon from '@suid/icons-material/ChevronLeft'
-import { onMount } from 'solid-js'
+import { createSignal, onMount } from 'solid-js'
+import LinearProgress from '@suid/material/LinearProgress'
 
 import API from '../../api'
 import { alertStore } from '../../components/AlertStack'
@@ -16,6 +17,7 @@ const UploadFileTo = () => {
 	const { addAlert } = alertStore
 	const navigate = useNavigate()
 	const params = useParams()
+	const [isUploading, setIsUploading] = createSignal(false)
 	onMount(checkAuth)
 
 	const navigateToFiles = () => {
@@ -40,20 +42,24 @@ const UploadFileTo = () => {
 			return
 		}
 
-		for (const file of files) {
-			const fullPath = basePath ? `${basePath}/${file.name}` : file.name
-			try {
-				await API.files.uploadFileTo(params.id, fullPath, file)
-				addAlert(`Файл "${file.name}" загружен`, 'success')
-			} catch (err) {
-				addAlert(
-					`Не удалось загрузить "${file.name}". Попробуйте еще раз.`,
-					'error'
-				)
+		setIsUploading(true)
+		try {
+			for (const file of files) {
+				const fullPath = basePath ? `${basePath}/${file.name}` : file.name
+				try {
+					await API.files.uploadFileTo(params.id, fullPath, file)
+					addAlert(`Файл "${file.name}" загружен`, 'success')
+				} catch (err) {
+					addAlert(
+						`Не удалось загрузить "${file.name}". Попробуйте еще раз.`,
+						'error'
+					)
+				}
 			}
+			navigateToFiles()
+		} finally {
+			setIsUploading(false)
 		}
-
-		navigateToFiles()
 	}
 
 	return (
@@ -82,6 +88,7 @@ const UploadFileTo = () => {
 				}}
 			>
 				<Typography variant="h5">Загрузка по пути</Typography>
+				{isUploading() ? <LinearProgress sx={{ width: '100%' }} /> : null}
 
 				<Divider />
 				<TextField

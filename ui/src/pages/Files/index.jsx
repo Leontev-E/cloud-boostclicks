@@ -11,6 +11,7 @@ import Stack from '@suid/material/Stack'
 import Typography from '@suid/material/Typography'
 import Divider from '@suid/material/Divider'
 import Paper from '@suid/material/Paper'
+import LinearProgress from '@suid/material/LinearProgress'
 
 import API from '../../api'
 import FSListItem from '../../components/FSListItem'
@@ -33,6 +34,7 @@ const Files = () => {
 	const [isCreateFolderDialogOpen, setIsCreateFolderDialogOpen] =
 		createSignal(false)
 	const [previewFile, setPreviewFile] = createSignal()
+	const [isUploading, setIsUploading] = createSignal(false)
 	const navigate = useNavigate()
 	const params = useParams()
 	const basePath = `/storages/${params.id}/files`
@@ -138,20 +140,24 @@ const Files = () => {
 
 		event.target.value = null
 		const currentPath = getCurrentPath()
+		setIsUploading(true)
 
-		for (const file of files) {
-			try {
-				await API.files.uploadFile(params.id, currentPath, file)
-				addAlert(`Файл "${file.name}" загружен`, 'success')
-			} catch (err) {
-				addAlert(
-					`Не удалось загрузить "${file.name}". Попробуйте еще раз.`,
-					'error'
-				)
+		try {
+			for (const file of files) {
+				try {
+					await API.files.uploadFile(params.id, currentPath, file)
+					addAlert(`Файл "${file.name}" загружен`, 'success')
+				} catch (err) {
+					addAlert(
+						`Не удалось загрузить "${file.name}". Попробуйте еще раз.`,
+						'error'
+					)
+				}
 			}
+			await fetchFSLayer()
+		} finally {
+			setIsUploading(false)
 		}
-
-		await fetchFSLayer()
 	}
 
 	const openPreview = (file) => {
@@ -207,6 +213,9 @@ const Files = () => {
 						</Menu>
 					</Grid>
 				</Grid>
+				<Show when={isUploading()}>
+					<LinearProgress sx={{ mb: 2 }} />
+				</Show>
 
 				<Grid>
 					<Show
