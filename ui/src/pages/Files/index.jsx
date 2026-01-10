@@ -12,6 +12,7 @@ import Typography from '@suid/material/Typography'
 import Divider from '@suid/material/Divider'
 import Paper from '@suid/material/Paper'
 import LinearProgress from '@suid/material/LinearProgress'
+import Box from '@suid/material/Box'
 
 import API from '../../api'
 import FSListItem from '../../components/FSListItem'
