@@ -29,8 +29,8 @@ impl<'d> StorageManagerService<'d> {
     pub fn new(db: &'d PgPool, telegram_baseurl: &'d str, rate_limit: u8) -> Self {
         let files_repo = FilesRepository::new(db);
         let storages_repo = StoragesRepository::new(db);
-        // 8 MB chunks: надёжнее для Telegram Bot API (лимит ~50 MB на запрос)
-        let chunk_size = 8 * 1024 * 1024;
+        // 20 MB chunks: меньше запросов к Telegram Bot API (лимит ~50 MB на запрос, 20 req/min)
+        let chunk_size = 20 * 1024 * 1024;
         Self {
             storages_repo,
             files_repo,

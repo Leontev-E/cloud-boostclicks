@@ -46,7 +46,7 @@ const UploadFileTo = () => {
 		setIsUploading(true)
 		setUploadProgress(0)
 		const totalSize = files.reduce((sum, f) => sum + f.size, 0) || 1
-		const chunkSize = 512 * 1024
+		const chunkSize = 20 * 1024 * 1024
 		let uploaded = 0
 		try {
 			for (const file of files) {

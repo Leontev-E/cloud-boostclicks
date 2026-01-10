@@ -203,7 +203,7 @@ impl<'d> FilesService<'d> {
             None => {
                 let file_size = size.unwrap_or(chunk_data.len() as i64);
                 let in_file = InFile::new(path.clone(), file_size, storage_id);
-                self.repo.create_file(in_file).await?.id
+                self.repo.create_file_anyway(in_file).await?.id
             }
         };
 

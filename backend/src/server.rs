@@ -23,10 +23,12 @@ impl Server {
     pub fn build_server(workers: usize, app_state: Arc<AppState>) -> Self {
         let serve_ui = ServeFile::new("ui/index.html");
         let serve_assets = ServeDir::new("ui/assets");
+        let serve_manifest = ServeFile::new("ui/manifest.webmanifest");
 
         let router = Router::new()
             .nest("/api", Self::build_api_router(workers, app_state))
             .nest_service("/assets", serve_assets)
+            .nest_service("/manifest.webmanifest", serve_manifest)
             .fallback_service(serve_ui);
 
         Self { router }
