@@ -1,6 +1,6 @@
 ﻿use std::{net::SocketAddr, sync::Arc};
 
-use axum::Router;
+use axum::{extract::DefaultBodyLimit, Router};
 use tower::limit::ConcurrencyLimitLayer;
 use tower_http::{
     cors,
@@ -48,6 +48,8 @@ impl Server {
                 "/storage_workers",
                 StorageWorkersRouter::get_router(app_state.clone()),
             )
+            // allow large uploads (up to ~1GB)
+            .layer(DefaultBodyLimit::max(1_024 * 1_024 * 1_024))
             .layer(ConcurrencyLimitLayer::new(workers.into()))
             .layer(app_cors)
     }
