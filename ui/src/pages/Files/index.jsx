@@ -151,10 +151,14 @@ const Files = () => {
 		try {
 			for (const file of files) {
 				try {
+					let prevLoaded = 0
 					await uploadWithProgress(params.id, currentPath, file, (loaded) => {
-						const delta = loaded - uploaded
+						const delta = loaded - prevLoaded
+						prevLoaded = loaded
 						uploaded += delta
-						setUploadProgress(Math.min(100, Math.round((uploaded / totalSize) * 100)))
+						setUploadProgress(
+							Math.min(100, Math.round((uploaded / totalSize) * 100))
+						)
 					})
 					addAlert(`Файл "${file.name}" загружен`, 'success')
 				} catch (err) {
@@ -183,7 +187,7 @@ const Files = () => {
 			xhr.setRequestHeader('Authorization', `Bearer ${store.access_token}`)
 			xhr.upload.onprogress = (e) => {
 				if (e.lengthComputable && typeof onProgress === 'function') {
-					onProgress(uploaded + e.loaded)
+					onProgress(e.loaded)
 				}
 			}
 			xhr.onload = () => {
