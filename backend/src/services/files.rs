@@ -26,7 +26,7 @@ use crate::{
     schemas::files::{InFileSchema, InFolderSchema},
 };
 use crate::schemas::files::DeleteSummary;
-use crate::storage_manager::StorageManagerService;
+use crate::services::storage_manager::StorageManagerService;
 
 pub struct FilesService<'d> {
     db: &'d PgPool,
