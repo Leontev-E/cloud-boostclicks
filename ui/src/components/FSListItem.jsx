@@ -28,6 +28,7 @@ import ShareDialog from './ShareDialog'
  * @property {import("../api").FSElement} fsElement
  * @property {string} storageId
  * @property {() => {}} onDelete
+ * @property {(file: import("../api").FSElement) => void} [onPreview]
  */
 
 /**
@@ -64,6 +65,8 @@ const FSListItem = (props) => {
 			navigate(
 				`/storages/${props.storageId}/files/${encodePath(props.fsElement.path)}`
 			)
+		} else if (props.onPreview) {
+			props.onPreview(props.fsElement)
 		}
 	}
 

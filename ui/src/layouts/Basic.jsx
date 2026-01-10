@@ -3,6 +3,7 @@ import { Outlet } from '@solidjs/router'
 import Header from '../components/Header'
 import SideBar from '../components/SideBar'
 import Footer from '../components/Footer'
+import InstallPromptBanner from '../components/InstallPromptBanner'
 import Box from '@suid/material/Box'
 import Container from '@suid/material/Container'
 import CssBaseline from '@suid/material/CssBaseline'
@@ -36,6 +37,7 @@ const BasicLayout = () => {
 					<Footer />
 				</Box>
 			</Box>
+			<InstallPromptBanner />
 		</Box>
 	)
 }

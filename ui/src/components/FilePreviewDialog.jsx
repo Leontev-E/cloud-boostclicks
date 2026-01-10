@@ -171,8 +171,8 @@ const FilePreviewDialog = (props) => {
 
 				<Show when={status() === 'ready' && fileType() === 'office'}>
 					<Typography>
-						Для Office-документов предпросмотр доступен через публичную ссылку.
-						Создайте ссылку и откройте ее в браузере.
+						Office-документы требуют публичный URL для предпросмотра. Создайте
+						ссылку на файл или скачайте его.
 					</Typography>
 				</Show>
 

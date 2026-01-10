@@ -29,6 +29,15 @@ const ShareDialog = (props) => {
 				</Stack>
 			</DialogContent>
 			<DialogActions>
+				<Button
+					component="a"
+					href={props.link}
+					target="_blank"
+					rel="noreferrer"
+					disabled={!props.link}
+				>
+					Открыть
+				</Button>
 				<Button onClick={props.onCopy} color="secondary">
 					Скопировать
 				</Button>

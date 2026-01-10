@@ -24,6 +24,7 @@ import CreateFolderDialog from '../../components/CreateFolderDialog'
 import { alertStore } from '../../components/AlertStack'
 import Access from '../../components/Access'
 import GrantAccess from '../../components/GrantAccess'
+import FilePreviewDialog from '../../components/FilePreviewDialog'
 
 const Files = () => {
 	const { addAlert } = alertStore
@@ -45,6 +46,7 @@ const Files = () => {
 	 * @type {[import("solid-js").Accessor<import("../api").UserWithAccess[]>, any]}
 	 */
 	const [users, setUsers] = createSignal([])
+	const [previewFile, setPreviewFile] = createSignal()
 	const navigate = useNavigate()
 	const params = useParams()
 	const basePath = `/storages/${params.id}/files`
@@ -177,6 +179,12 @@ const Files = () => {
 		await fetchFSLayer()
 	}
 
+	const openPreview = (file) => {
+		setPreviewFile(file)
+	}
+
+	const closePreview = () => setPreviewFile(undefined)
+
 	return (
 		<>
 			<Stack container>
@@ -285,15 +293,16 @@ const Files = () => {
 								<Divider />
 								{mapArray(fsLayer, (fsElement) => (
 									<>
-										<FSListItem
-											fsElement={fsElement}
-											storageId={params.id}
-											onDelete={fetchFSLayer}
-										/>
-										<Divider />
-									</>
-								))}
-							</List>
+									<FSListItem
+										fsElement={fsElement}
+										storageId={params.id}
+										onDelete={fetchFSLayer}
+										onPreview={openPreview}
+									/>
+									<Divider />
+								</>
+							))}
+						</List>
 						</Show>
 					</Grid>
 
@@ -308,6 +317,13 @@ const Files = () => {
 						multiple
 						style="display: none"
 						onChange={uploadFile}
+					/>
+
+					<FilePreviewDialog
+						file={previewFile()}
+						storageId={params.id}
+						isOpened={Boolean(previewFile())}
+						onClose={closePreview}
 					/>
 				</Show>
 			</Stack>
