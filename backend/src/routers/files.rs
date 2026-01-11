@@ -1,4 +1,4 @@
-﻿use std::{collections::HashMap, path::Path, sync::Arc};
+﻿use std::{collections::HashMap, path::Path, pin::Pin, sync::Arc};
 
 use axum::{
     body::{Full, StreamBody},
@@ -285,13 +285,14 @@ impl FilesRouter {
             .first_or_octet_stream()
             .to_string();
 
-        let stream: Pin<Box<dyn futures::Stream<Item = CloudBoostclicksResult<Bytes>> + Send>> =
-            FilesService::new(&state.db, state.config.clone(), state.tx.clone())
+        let stream: Pin<
+            Box<dyn futures::Stream<Item = CloudBoostclicksResult<Bytes>> + Send>,
+        > = FilesService::new(&state.db, state.config.clone(), state.tx.clone())
             .download_stream(path, storage_id, &user)
             .await
             .map_err(|e| <(StatusCode, String)>::from(e))?;
 
-        let body_stream = stream.map(|res| {
+        let body_stream = stream.map(|res: CloudBoostclicksResult<Bytes>| {
             res.map_err(|e| std::io::Error::new(std::io::ErrorKind::Other, e.to_string()))
         });
         let body = StreamBody::new(body_stream);
