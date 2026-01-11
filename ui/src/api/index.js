@@ -348,17 +348,56 @@ const getFSLayer = async (storage_id, path) => {
  * @param {string} path
  * @returns {Promise<Blob>}
  */
-const download = async (storage_id, path) => {
-	const safePath = encodePath(path || '')
-	const response = await apiRequest(
-		`/storages/${storage_id}/files/download/${safePath}`,
-		'get',
-		getAuthToken(),
-		undefined,
-		true
-	)
+const streamDownload = async (url, authToken, onProgress) => {
+	const headers = new Headers()
+	if (authToken) headers.append('Authorization', authToken)
 
-	return await response.blob()
+	const response = await fetch(url, { method: 'get', headers })
+
+	if (response.status === 401) {
+		handleUnauthorized()
+	}
+	if (!response.ok) {
+		throw new Error(await response.text())
+	}
+
+	if (!onProgress) {
+		return await response.blob()
+	}
+
+	const total = Number(response.headers.get('content-length')) || 0
+	const reader = response.body?.getReader()
+	if (!reader) return await response.blob()
+
+	const chunks = []
+	let loaded = 0
+	while (true) {
+		const { done, value } = await reader.read()
+		if (done) break
+		if (value) {
+			chunks.push(value)
+			loaded += value.length
+			if (typeof onProgress === 'function') {
+				if (total > 0) {
+					onProgress(Math.min(100, Math.round((loaded / total) * 100)))
+				} else {
+					onProgress(null)
+				}
+			}
+		}
+	}
+
+	const blob = new Blob(chunks, {
+		type: response.headers.get('content-type') || 'application/octet-stream',
+	})
+	return blob
+}
+
+const download = async (storage_id, path, onProgress) => {
+	const safePath = encodePath(path || '')
+	const apiBase = import.meta.env.VITE_API_BASE || '/api'
+	const url = `${apiBase}/storages/${storage_id}/files/download/${safePath}`
+	return await streamDownload(url, getAuthToken(), onProgress)
 }
 
 /**
@@ -367,17 +406,11 @@ const download = async (storage_id, path) => {
  * @param {string} path
  * @returns {Promise<Blob>}
  */
-const downloadFolder = async (storage_id, path) => {
+const downloadFolder = async (storage_id, path, onProgress) => {
 	const safePath = encodePath(path || '')
-	const response = await apiRequest(
-		`/storages/${storage_id}/files/download_folder/${safePath}`,
-		'get',
-		getAuthToken(),
-		undefined,
-		true
-	)
-
-	return await response.blob()
+	const apiBase = import.meta.env.VITE_API_BASE || '/api'
+	const url = `${apiBase}/storages/${storage_id}/files/download_folder/${safePath}`
+	return await streamDownload(url, getAuthToken(), onProgress)
 }
 
 /**

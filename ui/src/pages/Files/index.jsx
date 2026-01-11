@@ -39,6 +39,9 @@ const Files = () => {
 	const [isUploading, setIsUploading] = createSignal(false)
 	const [uploadProgress, setUploadProgress] = createSignal(0)
 	const [uploadNote, setUploadNote] = createSignal('')
+	const [isDownloading, setIsDownloading] = createSignal(false)
+	const [downloadProgress, setDownloadProgress] = createSignal(0)
+	const [downloadName, setDownloadName] = createSignal('')
 	const navigate = useNavigate()
 	const params = useParams()
 	const basePath = `/storages/${params.id}/files`
@@ -221,6 +224,21 @@ const Files = () => {
 
 	const closePreview = () => setPreviewFile(undefined)
 
+	const handleDownloadStart = (name) => {
+		setIsDownloading(true)
+		setDownloadName(name)
+		setDownloadProgress(0)
+	}
+	const handleDownloadProgress = (pct) => {
+		if (pct === null) return
+		setDownloadProgress(pct)
+	}
+	const handleDownloadEnd = () => {
+		setIsDownloading(false)
+		setDownloadName('')
+		setDownloadProgress(0)
+	}
+
 	return (
 		<>
 			<Stack container>
@@ -294,6 +312,17 @@ const Files = () => {
 									</Typography>
 								</Box>
 							</Show>
+							<Show when={isDownloading()}>
+								<Box sx={{ px: 2, pb: 1 }}>
+									<LinearProgress
+										variant="determinate"
+										value={downloadProgress()}
+									/>
+									<Typography variant="caption" color="text.secondary">
+										Скачивание: {downloadName()} · {downloadProgress()}%
+									</Typography>
+								</Box>
+							</Show>
 							<Divider />
 							{mapArray(fsLayer, (fsElement) => (
 								<>
@@ -302,6 +331,9 @@ const Files = () => {
 										storageId={params.id}
 										onDelete={fetchFSLayer}
 										onPreview={openPreview}
+										onDownloadStart={handleDownloadStart}
+										onDownloadProgress={handleDownloadProgress}
+										onDownloadEnd={handleDownloadEnd}
 									/>
 									<Divider />
 								</>

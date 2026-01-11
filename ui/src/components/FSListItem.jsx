@@ -28,6 +28,9 @@ import ShareDialog from './ShareDialog'
  * @property {string} storageId
  * @property {() => {}} onDelete
  * @property {(file: import("../api").FSElement) => void} [onPreview]
+ * @property {(name: string) => void} [onDownloadStart]
+ * @property {(pct: number | null) => void} [onDownloadProgress]
+ * @property {() => void} [onDownloadEnd]
  */
 
 /**
@@ -77,11 +80,17 @@ const FSListItem = (props) => {
 
 	const download = async () => {
 		try {
+			props.onDownloadStart?.(props.fsElement.name)
 			const blob = props.fsElement.is_file
-				? await API.files.download(params.id, props.fsElement.path)
+				? await API.files.download(
+						params.id,
+						props.fsElement.path,
+						props.onDownloadProgress
+				  )
 				: await API.files.downloadFolder(
 						params.id,
-						`${props.fsElement.path.replace(/\/?$/, '/')}`
+						`${props.fsElement.path.replace(/\/?$/, '/')}`,
+						props.onDownloadProgress
 				  )
 
 			const href = URL.createObjectURL(blob)
@@ -99,6 +108,8 @@ const FSListItem = (props) => {
 			a.remove()
 		} catch (err) {
 			addAlert('Не удалось скачать файл. Попробуйте позже.', 'error')
+		} finally {
+			props.onDownloadEnd?.()
 		}
 	}
 
