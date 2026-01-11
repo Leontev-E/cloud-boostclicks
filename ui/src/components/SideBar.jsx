@@ -1,4 +1,5 @@
 ﻿import Drawer from '@suid/material/Drawer'
+import Box from '@suid/material/Box'
 import List from '@suid/material/List'
 import Divider from '@suid/material/Divider'
 import IconButton from '@suid/material/IconButton'
@@ -45,28 +46,42 @@ const SideBar = () => {
 		<Drawer
 			variant="permanent"
 			open
+			PaperProps={{
+				sx: {
+					background: 'linear-gradient(180deg, #0f172a 0%, #111827 50%, #0f172a 100%)',
+					color: '#e5e7eb',
+					borderRight: 'none',
+					boxShadow: '4px 0 24px rgba(0,0,0,0.18)',
+					minWidth: open() ? 240 : 82,
+					transition: 'min-width 0.25s ease',
+				},
+			}}
 			classes={{
 				paper: open()
 					? 'drawer-paper drawer-paper-opened'
 					: 'drawer-paper drawer-paper-closed',
 			}}
 		>
-			<List>
-				<ListItem disablePadding sx={{ display: 'block' }}>
-					<ListItemButton
-						sx={{
-							justifyContent: open() ? 'end' : 'center',
-							py: 0.5,
-							px: 1,
-						}}
-						onClick={toggleDrawerOpen}
-					>
-						<IconButton>
-							{open() ? <ChevronLeftIcon /> : <ChevronRightIcon />}
-						</IconButton>
-					</ListItemButton>
-				</ListItem>
-			</List>
+			<Box
+				sx={{
+					display: 'flex',
+					justifyContent: open() ? 'flex-end' : 'center',
+					p: 1,
+				}}
+			>
+				<IconButton
+					onClick={toggleDrawerOpen}
+					sx={{
+						borderRadius: 2,
+						border: '1px solid rgba(255,255,255,0.14)',
+						bgcolor: 'rgba(255,255,255,0.08)',
+						color: '#e5e7eb',
+						'&:hover': { bgcolor: 'rgba(255,255,255,0.14)' },
+					}}
+				>
+					{open() ? <ChevronLeftIcon /> : <ChevronRightIcon />}
+				</IconButton>
+			</Box>
 			<Divider />
 			<List>
 				<SideBarItem text="Облака" link="/storages" isFull={open()}>

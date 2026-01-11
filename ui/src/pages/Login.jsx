@@ -463,6 +463,7 @@ const Login = (props) => {
 										display: 'flex',
 										alignItems: 'center',
 										justifyContent: 'center',
+										textAlign: 'center',
 										bgcolor: '#f8fafc',
 									}}
 								>
