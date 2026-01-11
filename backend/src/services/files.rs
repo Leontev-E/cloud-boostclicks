@@ -264,7 +264,7 @@ impl<'d> FilesService<'d> {
         path: &str,
         storage_id: Uuid,
         user: &AuthUser,
-    ) -> CloudBoostclicksResult<Pin<Box<dyn Stream<Item = CloudBoostclicksResult<Bytes>> + Send>>> {
+    ) -> CloudBoostclicksResult<Pin<Box<dyn Stream<Item = CloudBoostclicksResult<Bytes>> + Send + '_>>> {
         check_access(&self.access_repo, user.id, storage_id, &AccessType::R).await?;
 
         if !Self::validate_path(path) {
