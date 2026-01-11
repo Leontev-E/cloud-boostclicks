@@ -10,6 +10,7 @@ import Grid from '@suid/material/Grid'
 import Stack from '@suid/material/Stack'
 import Alert from '@suid/material/Alert'
 import Chip from '@suid/material/Chip'
+import Link from '@suid/material/Link'
 import Card from '@suid/material/Card'
 import CardContent from '@suid/material/CardContent'
 import CardHeader from '@suid/material/CardHeader'
@@ -23,6 +24,9 @@ import SecurityIcon from '@suid/icons-material/Security'
 import FlashOnIcon from '@suid/icons-material/FlashOn'
 import LinkIcon from '@suid/icons-material/Link'
 import MobileFriendlyIcon from '@suid/icons-material/MobileFriendly'
+import ExpandMoreIcon from '@suid/icons-material/ExpandMore'
+import Fab from '@suid/material/Fab'
+import NavigationIcon from '@suid/icons-material/Navigation'
 import createLocalStore from '../../libs'
 import { useNavigate } from '@solidjs/router'
 
@@ -225,145 +229,45 @@ const Login = (props) => {
 		navigate(redirect_url)
 	}
 
-	const featureCards = [
-		{
-			title: 'Вход без паролей',
-			text: 'Telegram Login + PWA: мгновенный вход, установка на главный экран, zero‑password опыт.',
-			icon: <SecurityIcon color="secondary" />,
-		},
-		{
-			title: 'Мультиоблака и боты',
-			text: 'Несколько облаков, несколько ботов на одно облако для максимальной скорости загрузки/отдачи.',
-			icon: <FlashOnIcon color="primary" />,
-		},
-		{
-			title: 'Ссылки и предпросмотр',
-			text: 'Фото, видео, документы и папки — предпросмотр и расшаривание одним переключателем.',
-			icon: <LinkIcon color="secondary" />,
-		},
-		{
-			title: 'Мобильный first',
-			text: 'Крупные элементы, жесты, плавные переходы. Интерфейс оптимизирован под смартфоны 2026.',
-			icon: <MobileFriendlyIcon color="primary" />,
-		},
-	]
-
-	const steps = [
-		'Войти через Telegram или по почте.',
-		'Создать облако и указать ID канала.',
-		'Добавить бота(ов) и назначить админом канала.',
-		'Загрузить файлы, включить ссылки при необходимости.',
-	]
-
-	const highlights = [
-		{
-			title: 'Работает на базе вашего канала',
-			text: 'Данные остаются у вас, доступы управляются через UI.',
-			icon: <CloudDoneIcon color="secondary" />,
-		},
-		{
-			title: 'Быстрые загрузки',
-			text: 'Добавьте несколько ботов к одному облаку — параллельные потоки ускоряют загрузку.',
-			icon: <FlashOnIcon color="primary" />,
-		},
-		{
-			title: 'Предпросмотр без скачивания',
-			text: 'Фото, видео, аудио, PDF — открываются прямо в интерфейсе.',
-			icon: <LinkIcon color="secondary" />,
-		},
-	]
-
-	const faqItems = [
-		{
-			q: 'Что такое Telegram cloud storage?',
-			a: 'Облако поверх вашего Telegram‑канала. Файлы остаются в канале, интерфейс — как привычный диск.',
-		},
-		{
-			q: 'Как подключить?',
-			a: 'Создайте канал, возьмите ID через @userinfobot, создайте облако, добавьте бота админом.',
-		},
-		{
-			q: 'Насколько это безопасно?',
-			a: 'Доступ по ссылке выключается одним переключателем, данные в вашем канале, роли контролируете вы.',
-		},
-		{
-			q: 'Поддерживаются большие файлы?',
-			a: 'Да. Чанковая загрузка, несколько ботов для скорости, скачивание папок архивом.',
-		},
-	]
-
-	return (
-		<Box
-			sx={{
-				minHeight: '100vh',
-				display: 'flex',
-				flexDirection: 'column',
-				bgcolor: '#0c1117',
-				backgroundImage:
-					'radial-gradient(circle at 20% 20%, rgba(111,198,255,0.16), transparent 25%), radial-gradient(circle at 80% 0%, rgba(255,255,255,0.12), transparent 30%), linear-gradient(135deg, #0c1117 0%, #0b1420 50%, #0b111a 100%)',
-				color: '#e7edf5',
-			}}
-		>
-			<Container maxWidth="lg" sx={{ py: { xs: 5, md: 8 }, flex: 1 }}>
+		return (
+		<Box sx={{ minHeight: '100vh', display: 'flex', flexDirection: 'column' }}>
+			<Container
+				maxWidth="lg"
+				sx={{ py: { xs: 6, md: 10 }, flex: 1 }}
+			>
 				<Grid container spacing={{ xs: 4, md: 6 }} alignItems="center">
 					<Grid item xs={12} md={6}>
-						<Stack spacing={2.5}>
+						<Stack spacing={2}>
 							<Chip
-								label="cloud.boostclicks — Telegram cloud 2026"
+								label="cloud.boostclicks"
 								color="secondary"
-								sx={{ width: 'fit-content', fontWeight: 700, letterSpacing: 0.2 }}
+								sx={{ width: 'fit-content', fontWeight: 600 }}
 							/>
-							<Typography
-								variant="h1"
-								sx={{
-									maxWidth: 540,
-									fontSize: { xs: 30, md: 42 },
-									lineHeight: 1.2,
-									fontWeight: 800,
-								}}
-							>
-								Ваше облако на базе Telegram. Без паролей. С мобильным UX будущего.
+							<Typography variant="h1" sx={{ maxWidth: 520, fontSize: { xs: 30, md: 40 } }}>
+								Облачное хранилище через Telegram – быстро, надежно и безопасно
 							</Typography>
-							<Typography variant="body1" sx={{ color: '#b6c4d6', maxWidth: 520 }}>
-								Войдите через Telegram, привяжите ботов, управляйте облаками, ссылками и
-								предпросмотром. Оптимизировано для смартфонов и PWA.
+							<Typography variant="body1" color="text.secondary">
+								Входите через Telegram, подключайте токены ботов и управляйте
+								мультиоблаками с ролями доступа и PWA‑поддержкой.
 							</Typography>
-							<Stack direction="row" spacing={1} sx={{ flexWrap: 'wrap', gap: 1 }}>
-								<Chip label="Telegram Login" variant="outlined" color="secondary" />
-								<Chip label="PWA" variant="outlined" color="primary" />
-								<Chip label="Мультиботы" variant="outlined" color="default" />
-							</Stack>
 						</Stack>
 					</Grid>
 					<Grid item xs={12} md={6}>
-						<Paper
-							sx={{
-								p: { xs: 3, md: 4 },
-								backdropFilter: 'blur(12px)',
-								background:
-									'linear-gradient(145deg, rgba(255,255,255,0.1), rgba(255,255,255,0.04))',
-								border: '1px solid rgba(255,255,255,0.08)',
-								boxShadow: '0 20px 60px rgba(0,0,0,0.35)',
-								color: '#e7edf5',
-							}}
-							elevation={0}
-						>
+						<Paper sx={{ p: { xs: 3, md: 4 } }} elevation={6}>
 							<Stack spacing={2}>
-								<Stack spacing={0.5}>
-									<Typography variant="h5" sx={{ fontWeight: 700 }}>
-										{isRegister() ? 'Регистрация' : 'Вход в приложение'}
-									</Typography>
-									<Typography variant="body2" sx={{ color: '#b6c4d6' }}>
-										{isRegister()
-											? 'Создайте аккаунт или зайдите через Telegram.'
-											: 'Войдите через Telegram, чтобы продолжить.'}
-									</Typography>
-								</Stack>
+								<Typography variant="h5">
+									{isRegister() ? 'Регистрация' : 'Вход в приложение'}
+								</Typography>
+								<Typography variant="body2" color="text.secondary">
+									{isRegister()
+										? 'Создайте аккаунт или войдите через Telegram.'
+										: 'Войдите через Telegram, чтобы продолжить.'}
+								</Typography>
 								<Box ref={(el) => (telegramRoot = el)} sx={{ minHeight: 54 }} />
 								{telegramError() ? (
 									<Alert severity="warning">{telegramError()}</Alert>
 								) : null}
-								<Divider sx={{ borderColor: 'rgba(255,255,255,0.1)' }}>
+								<Divider>
 									{isRegister() ? 'или зарегистрируйтесь' : 'или войдите по почте'}
 								</Divider>
 								<Box component="form" onSubmit={handleSubmit} ref={(el) => (formRef = el)}>
@@ -384,136 +288,215 @@ const Login = (props) => {
 											required
 											fullWidth
 										/>
-										<Button
-											type="submit"
-											variant="contained"
-											color="secondary"
-											size="large"
-											sx={{ py: 1.2 }}
-										>
+										<Button type="submit" variant="contained" color="primary">
 											{isRegister() ? 'Зарегистрироваться' : 'Войти'}
-										</Button>
-										<Button
-											variant="text"
-											color="inherit"
-											sx={{ alignSelf: 'flex-start', fontWeight: 600 }}
-											onClick={() => setMode(isRegister() ? 'login' : 'register')}
-										>
-											{isRegister()
-												? 'Уже есть аккаунт? Войти.'
-												: 'Еще нет аккаунта? Зарегистрироваться.'}
 										</Button>
 									</Stack>
 								</Box>
+								<Link
+									component="button"
+									type="button"
+									onClick={() =>
+										setMode(isRegister() ? 'login' : 'register')
+									}
+									underline="hover"
+									sx={{ alignSelf: 'flex-start', fontWeight: 600 }}
+								>
+									{isRegister()
+										? 'Уже есть аккаунт? Войти.'
+										: 'Еще нет аккаунта? Зарегистрироваться.'}
+								</Link>
 							</Stack>
 						</Paper>
 					</Grid>
 				</Grid>
 			</Container>
-
-			<Box sx={{ background: '#0b111a', borderTop: '1px solid rgba(255,255,255,0.06)' }}>
+			<Box sx={{ backgroundColor: '#f7f1e8' }}>
 				<Container maxWidth="lg" sx={{ py: { xs: 5, md: 7 } }}>
-					<Stack spacing={{ xs: 4, md: 6 }}>
-						<Grid container spacing={3}>
-							{featureCards.map((card) => (
-								<Grid item xs={12} sm={6} md={3}>
-									<Paper
-										sx={{
-											p: 2.5,
-											height: '100%',
-											bgcolor: 'rgba(255,255,255,0.03)',
-											border: '1px solid rgba(255,255,255,0.06)',
-										}}
-										elevation={0}
-									>
-										<Stack spacing={1.2}>
-											{card.icon}
-											<Typography variant="h6">{card.title}</Typography>
-											<Typography variant="body2" sx={{ color: '#b6c4d6' }}>
-												{card.text}
+					<Stack spacing={4}>
+						<Box id="features">
+							<Typography variant="h2" sx={{ mb: 2 }}>
+								Почему именно Telegram-облако
+							</Typography>
+							<Grid container spacing={3}>
+								<Grid item xs={12} md={7}>
+									<Paper sx={{ p: { xs: 3, md: 4 } }}>
+										<Stack spacing={1.5}>
+											<Typography variant="h3">
+												Вход через Telegram — без паролей
+											</Typography>
+											<Typography variant="body2" color="text.secondary">
+												Авторизация через виджет Telegram. Пароли не нужны, данные остаются в вашем канале.
+											</Typography>
+											<Typography variant="h3">
+												Мультиоблака и роли доступа
+											</Typography>
+											<Typography variant="body2" color="text.secondary">
+												Несколько облаков на одном аккаунте, привязка ботов и ролей, удобный UI для команды.
+											</Typography>
+											<List dense>
+												{[
+													{
+														icon: <SecurityIcon color="primary" />,
+														text: 'Приватность: файлы в вашем Telegram-канале.',
+													},
+													{
+														icon: <FlashOnIcon color="secondary" />,
+														text: 'Скорость: несколько ботов = быстрые загрузки.',
+													},
+													{
+														icon: <LinkIcon color="primary" />,
+														text: 'Ссылки: включение/отключение доступа одним переключателем.',
+													},
+													{
+														icon: <MobileFriendlyIcon color="secondary" />,
+														text: 'PWA и мобильный UI: крупные элементы, предпросмотр без скачивания.',
+													},
+												].map((item) => (
+													<ListItem>
+														<ListItemIcon>{item.icon}</ListItemIcon>
+														<ListItemText primary={item.text} />
+													</ListItem>
+												))}
+											</List>
+											<Typography variant="body2" color="text.secondary">
+												Ключевые запросы: облачное хранилище Telegram, облако на базе Telegram, Telegram cloud storage, cloud storage Telegram, PWA Telegram облако.
 											</Typography>
 										</Stack>
 									</Paper>
 								</Grid>
-							))}
-						</Grid>
-
-						<Box id="how-it-works">
-							<Typography variant="h4" sx={{ mb: 2, fontWeight: 800 }}>
-								Как подключиться
-							</Typography>
-							<Grid container spacing={2}>
-								{steps.map((text, idx) => (
-									<Grid item xs={12} sm={6} md={3}>
-										<Paper
-											sx={{
-												p: 2,
-												height: '100%',
-												bgcolor: 'rgba(255,255,255,0.03)',
-												border: '1px solid rgba(255,255,255,0.05)',
-											}}
-											elevation={0}
-										>
-											<Stack spacing={1}>
-												<Chip
-													size="small"
-													label={`Шаг ${idx + 1}`}
-													color="secondary"
-													sx={{ width: 'fit-content' }}
-												/>
-												<Typography variant="body1">{text}</Typography>
-											</Stack>
-										</Paper>
-									</Grid>
-								))}
+								<Grid item xs={12} md={5}>
+									<Stack spacing={2}>
+										<Card>
+											<CardHeader
+												title="Как подключить"
+												subheader="4 шага и всё готово"
+											/>
+											<CardContent>
+												<List dense>
+													{[
+														'Создайте Telegram‑канал (лучше приватный).',
+														'Узнайте ID: @userinfobot или @getmyid_bot (ID вида -100...).',
+														'Подключите облако, добавьте бота и назначьте его админом канала.',
+														'Прикрепите несколько ботов для максимальной скорости.',
+													].map((text) => (
+														<ListItem>
+															<ListItemIcon>
+																<CheckCircleIcon color="primary" />
+															</ListItemIcon>
+															<ListItemText primary={text} />
+														</ListItem>
+													))}
+												</List>
+											</CardContent>
+										</Card>
+										<Card id="features-list">
+											<CardHeader
+												avatar={<CloudDoneIcon color="secondary" />}
+												title="Основные функции cloud.boostclicks.ru"
+												subheader="PWA, предпросмотр, ссылки"
+											/>
+											<CardContent>
+												<Typography variant="h3" sx={{ fontSize: 18 }}>
+													PWA & мобильная поддержка
+												</Typography>
+												<Typography variant="body2" color="text.secondary" sx={{ mb: 1 }}>
+													Устанавливайте на экран смартфона, работайте офлайн-кешем интерфейса.
+												</Typography>
+												<Typography variant="h3" sx={{ fontSize: 18 }}>
+													Хранение больших файлов через телеграм-каналы
+												</Typography>
+												<Typography variant="body2" color="text.secondary">
+													Загружайте большие файлы и папки, скачивайте архивом, управляйте доступом.
+												</Typography>
+											</CardContent>
+										</Card>
+									</Stack>
+								</Grid>
 							</Grid>
 						</Box>
 
-						<Box>
-							<Typography variant="h4" sx={{ mb: 2, fontWeight: 800 }}>
-								Мобильный UX и производительность
+						<Box id="how-it-works">
+							<Typography variant="h2" sx={{ mb: 2 }}>
+								Как это работает
 							</Typography>
 							<Grid container spacing={2}>
-								{highlights.map((h) => (
-									<Grid item xs={12} md={4}>
-										<Paper
-											sx={{
-												p: 2.5,
-												height: '100%',
-												bgcolor: 'rgba(255,255,255,0.03)',
-												border: '1px solid rgba(255,255,255,0.05)',
-											}}
-											elevation={0}
-										>
-											<Stack spacing={1}>
-												{h.icon}
-												<Typography variant="h6">{h.title}</Typography>
-												<Typography variant="body2" sx={{ color: '#b6c4d6' }}>
-													{h.text}
-												</Typography>
-											</Stack>
-										</Paper>
-									</Grid>
-								))}
+								<Grid item xs={12} md={6}>
+									<Typography variant="h3" sx={{ mb: 1 }}>
+										Шаги регистрации
+									</Typography>
+									<List dense>
+										{[
+											'Войдите через Telegram или по почте.',
+											'Создайте облако, указав ID канала.',
+											'Добавьте бота и назначьте его админом канала.',
+											'Включите доступ по ссылке при необходимости.',
+										].map((text) => (
+											<ListItem>
+												<ListItemIcon>
+													<CheckCircleIcon color="primary" />
+												</ListItemIcon>
+												<ListItemText primary={text} />
+											</ListItem>
+										))}
+									</List>
+								</Grid>
+								<Grid item xs={12} md={6}>
+									<Typography variant="h3" sx={{ mb: 1 }}>
+										Настройка облака
+									</Typography>
+									<List dense>
+										{[
+											'Подключите несколько ботов для ускорения загрузок.',
+											'Создавайте папки, загружайте файлы и папки целиком.',
+											'Предпросматривайте фото, видео, документы без скачивания.',
+											'Включайте/отключайте публичные ссылки одним переключателем.',
+										].map((text) => (
+											<ListItem>
+												<ListItemIcon>
+													<CheckCircleIcon color="secondary" />
+												</ListItemIcon>
+												<ListItemText primary={text} />
+											</ListItem>
+										))}
+									</List>
+								</Grid>
 							</Grid>
 						</Box>
 
 						<Box id="faq">
-							<Typography variant="h4" sx={{ mb: 2, fontWeight: 800 }}>
-								FAQ
+							<Typography variant="h2" sx={{ mb: 2 }}>
+								Часто задаваемые вопросы (FAQ)
 							</Typography>
-							<Stack spacing={1.2}>
-								{faqItems.map((item) => (
-									<Paper
-										sx={{
-											p: 2,
-											bgcolor: 'rgba(255,255,255,0.03)',
-											border: '1px solid rgba(255,255,255,0.05)',
-										}}
-										elevation={0}
-									>
-										<Typography variant="h6">{item.q}</Typography>
-										<Typography variant="body2" sx={{ color: '#b6c4d6', mt: 0.5 }}>
+							<Stack spacing={1.5}>
+								{[
+									{
+										q: 'Что такое Telegram cloud storage?',
+										a: 'Это облако, где файлы хранятся в вашем канале Telegram, а интерфейс напоминает привычный диск.',
+									},
+									{
+										q: 'Как создать облако через Telegram?',
+										a: 'Создайте канал, получите его ID через бота (@userinfobot), подключите облако и добавьте бота админом.',
+									},
+									{
+										q: 'Безопасно ли хранение файлов?',
+										a: 'Да. Данные в вашем канале, доступ по ссылке можно включать/отключать, роли доступа контролируются вами.',
+									},
+									{
+										q: 'Можно ли работать с большими файлами?',
+										a: 'Да. Telegram поддерживает крупные вложения, а cloud.boostclicks даёт загрузку, предпросмотр и скачивание архивом.',
+									},
+									{
+										q: 'Сколько стоит использование?',
+										a: 'Базовый вход бесплатный, хранение зависит от Telegram. Дополнительные тарифы можно обсудить с BoostClicks.',
+									},
+								].map((item) => (
+									<Paper sx={{ p: 2 }}>
+										<Typography variant="h3" sx={{ fontSize: 18, display: 'flex', alignItems: 'center', gap: 1 }}>
+											<ExpandMoreIcon fontSize="small" />
+											{item.q}
+										</Typography>
+										<Typography variant="body2" color="text.secondary" sx={{ mt: 0.5 }}>
 											{item.a}
 										</Typography>
 									</Paper>
@@ -522,41 +505,30 @@ const Login = (props) => {
 						</Box>
 
 						<Box id="cta">
-							<Paper
-								sx={{
-									p: { xs: 3, md: 4 },
-									textAlign: 'center',
-									bgcolor: 'rgba(255,255,255,0.05)',
-									border: '1px solid rgba(255,255,255,0.08)',
-								}}
-								elevation={0}
-							>
-								<Typography variant="h4" sx={{ mb: 1, fontWeight: 800 }}>
+							<Paper sx={{ p: { xs: 3, md: 4 }, textAlign: 'center' }}>
+								<Typography variant="h2" sx={{ mb: 1 }}>
 									Попробовать бесплатно
 								</Typography>
-								<Typography variant="body1" sx={{ color: '#b6c4d6', mb: 2 }}>
-									Войдите через Telegram, добавьте ботов, подключите канал и начните загрузку
-									файлов за минуты.
+								<Typography variant="body1" color="text.secondary" sx={{ mb: 2 }}>
+									Создайте облако через Telegram, подключите бота и начните загрузку файлов.
 								</Typography>
-								<Stack
-									direction={{ xs: 'column', sm: 'row' }}
-									spacing={2}
-									justifyContent="center"
-									alignItems="center"
-								>
+								<Stack direction="row" spacing={2} justifyContent="center">
 									<Button
 										variant="contained"
 										color="secondary"
-										onClick={() => setMode('login')}
-										sx={{ minWidth: 200 }}
+										onClick={() => {
+											setMode('login')
+											telegramRoot?.scrollIntoView({ behavior: 'smooth', block: 'center' })
+										}}
 									>
 										Начать с Telegram
 									</Button>
 									<Button
 										variant="outlined"
-										color="inherit"
-										onClick={() => setMode('register')}
-										sx={{ minWidth: 200 }}
+										onClick={() => {
+											setMode('register')
+											formRef?.scrollIntoView({ behavior: 'smooth', block: 'center' })
+										}}
 									>
 										Создать облако сейчас
 									</Button>
@@ -566,6 +538,23 @@ const Login = (props) => {
 					</Stack>
 				</Container>
 			</Box>
+			<Fab
+				variant="extended"
+				color="secondary"
+				onClick={() => {
+					setMode('register')
+					formRef?.scrollIntoView({ behavior: 'smooth', block: 'center' })
+				}}
+				sx={{
+					position: 'fixed',
+					bottom: 24,
+					right: 24,
+					boxShadow: '0 12px 30px rgba(0,0,0,0.16)',
+				}}
+			>
+				<NavigationIcon sx={{ mr: 1 }} />
+				Создать облако
+			</Fab>
 			<Footer />
 		</Box>
 	)
