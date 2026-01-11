@@ -9,7 +9,7 @@ use axum::{
     routing::{get, post},
     Extension, Json, Router,
 };
-use futures::{StreamExt, TryStreamExt};
+use futures::StreamExt;
 use reqwest::header;
 use serde_json::json;
 use tokio_util::bytes::Bytes;
@@ -285,12 +285,15 @@ impl FilesRouter {
             .first_or_octet_stream()
             .to_string();
 
-        let stream = FilesService::new(&state.db, state.config.clone(), state.tx.clone())
+        let stream: Pin<Box<dyn futures::Stream<Item = CloudBoostclicksResult<Bytes>> + Send>> =
+            FilesService::new(&state.db, state.config.clone(), state.tx.clone())
             .download_stream(path, storage_id, &user)
             .await
             .map_err(|e| <(StatusCode, String)>::from(e))?;
 
-        let body_stream = stream.map_err(|e| std::io::Error::new(std::io::ErrorKind::Other, e.to_string()));
+        let body_stream = stream.map(|res| {
+            res.map_err(|e| std::io::Error::new(std::io::ErrorKind::Other, e.to_string()))
+        });
         let body = StreamBody::new(body_stream);
         let headers = AppendHeaders([
             (header::CONTENT_TYPE, content_type),
