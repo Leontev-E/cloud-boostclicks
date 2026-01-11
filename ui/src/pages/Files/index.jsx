@@ -252,10 +252,10 @@ const Files = () => {
 					<Grid item xs={12} md={7}>
 						<Typography variant="h4">{storage()?.name}</Typography>
 						<Typography variant="body2" color="text.secondary">
-							Клик по файлу — информация и предпросмотр. Клик по папке — переход внутрь.
+							Путь: /{getCurrentPath() || 'корень'}
 						</Typography>
 						<Typography variant="body2" color="text.secondary">
-							Рекомендуем добавить до 20 ботов в один канал для более быстрой работы облака.
+							Клик по файлу — предпросмотр. Клик по папке — переход внутрь.
 						</Typography>
 					</Grid>
 
@@ -280,6 +280,14 @@ const Files = () => {
 									<UploadFileIcon />
 								</ListItemIcon>
 								<ListItemText>Файлы</ListItemText>
+							</MenuItem>
+							<MenuItem
+								onClick={() => navigate(`/storages/${params.id}/upload_to`)}
+							>
+								<ListItemIcon>
+									<UploadFileIcon />
+								</ListItemIcon>
+								<ListItemText>Файлы по пути</ListItemText>
 							</MenuItem>
 						</Menu>
 					</Grid>

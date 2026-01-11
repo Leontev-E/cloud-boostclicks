@@ -13,11 +13,6 @@ import InfoIcon from '@suid/icons-material/Info'
 import DeleteIcon from '@suid/icons-material/Delete'
 import ShareIcon from '@suid/icons-material/Share'
 import PreviewIcon from '@suid/icons-material/VisibilityOutlined'
-import ImageIcon from '@suid/icons-material/Image'
-import DescriptionIcon from '@suid/icons-material/Description'
-import PictureAsPdfIcon from '@suid/icons-material/PictureAsPdf'
-import MovieIcon from '@suid/icons-material/Movie'
-import MusicNoteIcon from '@suid/icons-material/MusicNote'
 import Paper from '@suid/material/Paper'
 import Typography from '@suid/material/Typography'
 import { Show, createSignal } from 'solid-js'
@@ -69,32 +64,6 @@ const FSListItem = (props) => {
 			.split('/')
 			.map((segment) => encodeURIComponent(segment))
 			.join('/')
-
-	const getExtension = (name = '') => {
-		const parts = name.toLowerCase().split('.')
-		return parts.length > 1 ? parts[parts.length - 1] : ''
-	}
-
-	const getFileIcon = (fsElement) => {
-		if (!fsElement.is_file) return <FolderIcon htmlColor="#f59e0b" />
-		const ext = getExtension(fsElement.name)
-		if (['jpg', 'jpeg', 'png', 'gif', 'webp', 'bmp', 'svg'].includes(ext)) {
-			return <ImageIcon htmlColor="#2563eb" />
-		}
-		if (['mp4', 'mov', 'webm', 'mkv'].includes(ext)) {
-			return <MovieIcon htmlColor="#7c3aed" />
-		}
-		if (['mp3', 'wav', 'ogg', 'aac'].includes(ext)) {
-			return <MusicNoteIcon htmlColor="#10b981" />
-		}
-		if (ext === 'pdf') {
-			return <PictureAsPdfIcon htmlColor="#ef4444" />
-		}
-		if (['doc', 'docx', 'xls', 'xlsx', 'ppt', 'pptx', 'txt', 'md', 'csv'].includes(ext)) {
-			return <DescriptionIcon htmlColor="#0ea5e9" />
-		}
-		return <FileIcon htmlColor="#475569" />
-	}
 
 	const getSharePath = () =>
 		props.fsElement.is_file
@@ -295,7 +264,9 @@ const FSListItem = (props) => {
 						}}
 					>
 						<ListItemIcon sx={{ minWidth: 36 }}>
-							{getFileIcon(props.fsElement)}
+							<Show when={props.fsElement.is_file} fallback={<FolderIcon />}>
+								<FileIcon />
+							</Show>
 						</ListItemIcon>
 						<ListItemText
 							primary={

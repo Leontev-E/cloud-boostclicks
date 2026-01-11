@@ -5,15 +5,9 @@ import CircularProgress from '@suid/material/CircularProgress'
 import Typography from '@suid/material/Typography'
 import Box from '@suid/material/Box'
 import Button from '@suid/material/Button'
-import Stack from '@suid/material/Stack'
-import Switch from '@suid/material/Switch'
-import FormControlLabel from '@suid/material/FormControlLabel'
-import Link from '@suid/material/Link'
 import { createEffect, createSignal, onCleanup, Show } from 'solid-js'
 
 import API from '../api'
-import { alertStore } from './AlertStack'
-import { convertSize } from '../common/size_converter'
 
 const textExtensions = new Set(['txt', 'md', 'csv', 'json', 'log'])
 const officeExtensions = new Set(['doc', 'docx', 'xls', 'xlsx', 'ppt', 'pptx'])
@@ -35,23 +29,17 @@ const getExtension = (name = '') => {
  */
 
 const FilePreviewDialog = (props) => {
-	const { addAlert } = alertStore
 	const [status, setStatus] = createSignal('idle')
 	const [objectUrl, setObjectUrl] = createSignal('')
 	const [textContent, setTextContent] = createSignal('')
 	const [fileType, setFileType] = createSignal('')
 	const [fileName, setFileName] = createSignal('')
-	const [shareEnabled, setShareEnabled] = createSignal(false)
-	const [shareLink, setShareLink] = createSignal('')
-	const [shareLoading, setShareLoading] = createSignal(false)
 
 	const reset = () => {
 		setStatus('idle')
 		setTextContent('')
 		setFileType('')
 		setFileName('')
-		setShareEnabled(false)
-		setShareLink('')
 		if (objectUrl()) {
 			URL.revokeObjectURL(objectUrl())
 			setObjectUrl('')
@@ -89,16 +77,6 @@ const FilePreviewDialog = (props) => {
 		reset()
 		setStatus('loading')
 		setFileName(props.file.name)
-		setShareLoading(true)
-		API.files
-			.getShareByPath(props.storageId, props.file.path, false)
-			.then((response) => {
-				if (response?.id) {
-					setShareEnabled(true)
-					setShareLink(`${window.location.origin}/share/${response.id}`)
-				}
-			})
-			.finally(() => setShareLoading(false))
 
 		const ext = getExtension(props.file.name)
 		if (officeExtensions.has(ext)) {
@@ -145,62 +123,12 @@ const FilePreviewDialog = (props) => {
 		})
 	})
 
-	const toggleShare = async (enabled) => {
-		if (!props.file) return
-		setShareLoading(true)
-		try {
-			if (enabled) {
-				const response = await API.files.createShare(
-					props.storageId,
-					props.file.path,
-					false
-				)
-				setShareLink(`${window.location.origin}/share/${response.id}`)
-				setShareEnabled(true)
-				addAlert('Доступ по ссылке включен', 'success')
-			} else {
-				await API.files.deleteShareByPath(props.storageId, props.file.path, false)
-				setShareLink('')
-				setShareEnabled(false)
-				addAlert('Доступ по ссылке отключен', 'success')
-			}
-		} catch (err) {
-			addAlert('Не удалось обновить доступ. Попробуйте позже.', 'error')
-		} finally {
-			setShareLoading(false)
-		}
-	}
-
 	return (
 		<Dialog open={props.isOpened} onClose={props.onClose} maxWidth="md" fullWidth>
 			<DialogTitle sx={{ textAlign: 'center' }}>
 				Предпросмотр: {fileName() || 'Файл'}
 			</DialogTitle>
 			<DialogContent>
-				<Stack spacing={1.5} sx={{ mb: 2 }}>
-					<Stack direction={{ xs: 'column', sm: 'row' }} spacing={1} justifyContent="space-between">
-						<Typography variant="body2">Размер: {convertSize(props.file?.size || 0)}</Typography>
-						<Typography variant="body2">
-							Тип файла: {getExtension(props.file?.name) || 'неизвестно'} (дата недоступна)
-						</Typography>
-					</Stack>
-					<FormControlLabel
-						control={
-							<Switch
-								checked={shareEnabled()}
-								disabled={shareLoading()}
-								onChange={(_, v) => toggleShare(v)}
-							/>
-						}
-						label="Открыть доступ по ссылке"
-					/>
-					<Show when={shareEnabled() && shareLink()}>
-						<Link href={shareLink()} target="_blank" rel="noreferrer">
-							{shareLink()}
-						</Link>
-					</Show>
-				</Stack>
-
 				<Show when={status() === 'loading'}>
 					<Box sx={{ display: 'flex', justifyContent: 'center', py: 6 }}>
 						<CircularProgress />

@@ -35,18 +35,13 @@ const SideBarItem = (props) => {
 							minWidth: 0,
 							mr: props.isFull ? 3 : 'auto',
 							justifyContent: 'center',
-							color: '#e5e7eb',
 						}}
 					>
 						{c()}
 					</ListItemIcon>
 					<ListItemText
 						primary={props.text}
-						sx={{
-							display: props.isFull ? 'border-box' : 'none',
-							color: '#e5e7eb',
-							'& .MuiListItemText-primary': { fontWeight: 600 },
-						}}
+						sx={{ display: props.isFull ? 'border-box' : 'none' }}
 					/>
 				</ListItemButton>
 			</A>
