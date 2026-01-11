@@ -83,7 +83,7 @@ const Login = (props) => {
 
 	const heroBullets = [
 		'Загружайте и храните файлы в Telegram — доступ с любого устройства.',
-		'Настраивайте роли доступа и управляйте несколькими облаками для команды.',
+		'Управляйте несколькими облаками и ботами, делитесь файлами по ссылке.',
 		'Добавляйте на экран как приложение (PWA) и работайте быстрее, чем в браузере.',
 	]
 
@@ -94,24 +94,19 @@ const Login = (props) => {
 			icon: <CloudDoneIcon color="primary" />,
 		},
 		{
-			title: 'Роли и доступы',
-			text: 'Viewer / Editor / Admin для командной работы.',
-			icon: <SecurityIcon color="secondary" />,
-		},
-		{
 			title: 'Мультиоблака',
 			text: 'Подключайте несколько ботов и каналов под задачи.',
 			icon: <StorageIcon color="primary" />,
 		},
 		{
-			title: 'Быстрый шаринг',
-			text: 'Выдавайте доступ по ссылке или приглашению.',
+			title: 'Шаринг по ссылке',
+			text: 'Включайте или выключайте доступ одной кнопкой.',
 			icon: <LinkIcon color="secondary" />,
 		},
 		{
-			title: 'Поиск и порядок',
-			text: 'Папки, фильтры и структура как в диске.',
-			icon: <VisibilityIcon color="primary" />,
+			title: 'Приватность',
+			text: 'Файлы остаются в Telegram-канале, метаданные — у нас.',
+			icon: <SecurityIcon color="secondary" />,
 		},
 		{
 			title: 'PWA как приложение',
@@ -131,7 +126,7 @@ const Login = (props) => {
 		},
 		{
 			title: 'Загружайте и делитесь',
-			desc: 'Управляйте доступом и храните файлы онлайн.',
+			desc: 'Включайте доступ по ссылке и храните файлы онлайн.',
 		},
 	]
 
@@ -140,30 +135,30 @@ const Login = (props) => {
 			id: 'classic',
 			title: 'Классические диски',
 			points: [
-				'Подключение: аккаунт + пароль',
-				'Роли: базовые шары/ссылки',
-				'Скорость: зависит от сервера',
-				'PWA: не всегда',
+				'Приложения есть, но часто платные или с лимитами.',
+				'Аккаунт/пароль, хранение на стороне провайдера.',
+				'Скорость и лимиты зависят от тарифа.',
+				'PWA не всегда доступен.',
 			],
 		},
 		{
 			id: 'telegram',
 			title: 'Telegram “Избранное”',
 			points: [
-				'Подключение: мгновенно',
-				'Роли: нет, только личное',
-				'Структура: чаты/сообщения',
-				'PWA: нет',
+				'Просто отправляете себе файлы.',
+				'Поиск неудобен, нужно листать ленту.',
+				'Нет структурных папок и расшаривания ссылкой.',
+				'PWA нет.',
 			],
 		},
 		{
 			id: 'boost',
 			title: 'BoostClicks Cloud',
 			points: [
-				'Подключение: Telegram Login + бот',
-				'Роли: viewer/editor/admin + ссылки',
-				'Скорость: несколько ботов параллельно',
-				'PWA: установка на главный экран',
+				'Бесплатно и безлимитно: хранение в вашем Telegram.',
+				'Включайте/выключайте доступ по ссылке, приватность по умолчанию.',
+				'Несколько ботов — быстрее загрузка и отдача.',
+				'PWA: установка на главный экран, работает как приложение.',
 			],
 		},
 	]
@@ -190,16 +185,16 @@ const Login = (props) => {
 			a: 'Да. Несколько ботов к одному облаку — быстрее загрузка/отдача.',
 		},
 		{
-			q: 'Как работают роли доступа?',
-			a: 'Viewer/Editor/Admin. Доступ по ссылке можно включить или выключить.',
+			q: 'Как работает доступ по ссылке?',
+			a: 'Включаете или выключаете ссылку в один клик. При выключении доступ закрывается.',
 		},
 		{
 			q: 'Подходит ли для команды вместо “Избранного”?',
-			a: 'Да. Это “телеграм-диск” с ролями и структурой, а не просто личный чат.',
+			a: 'Да. Структура папок, быстрый поиск и шаринг ссылкой вместо прокрутки чата.',
 		},
 		{
 			q: 'Чем отличается от Избранного?',
-			a: 'Структура папок, роли доступа, шаринг ссылкой, мультиботы и PWA.',
+			a: 'Удобный поиск, папки, мультиботы, PWA и шаринг ссылкой. Не нужно листать ленту.',
 		},
 		{
 			q: 'Работает на iPhone/Android как приложение?',
@@ -291,7 +286,7 @@ const Login = (props) => {
 		if (desc) {
 			desc.setAttribute(
 				'content',
-				'BoostClicks Cloud — облачное хранилище через Telegram: вход за секунды, мультиоблака, роли доступа и PWA. Удобная альтернатива дискам для файлов.'
+				'BoostClicks Cloud — облачное хранилище через Telegram: вход за секунды, мультиоблака, шаринг по ссылке и PWA. Удобная альтернатива дискам для файлов.'
 			)
 		}
 		let canonical = document.querySelector("link[rel='canonical']")
@@ -310,20 +305,21 @@ const Login = (props) => {
 		}
 
 		injectSchema()
+	})
 
+	let widgetMounted = false
+	createEffect(() => {
+		if (store.access_token) return
 		const botName = import.meta.env.VITE_TELEGRAM_LOGIN_BOT_USERNAME
 		if (!botName) {
 			setTelegramError('Вход через Telegram пока не настроен.')
 			return
 		}
-
-		if (!telegramRoot) {
-			setTelegramError('Вход через Telegram недоступен в этом браузере.')
+		if (!telegramRoot || widgetMounted) {
 			return
 		}
 
 		window.onTelegramAuth = handleTelegramAuth
-
 		const script = document.createElement('script')
 		script.async = true
 		script.src = 'https://telegram.org/js/telegram-widget.js?22'
@@ -335,10 +331,11 @@ const Login = (props) => {
 		script.setAttribute('data-userpic', 'false')
 		script.onload = () => setIsTelegramReady(true)
 		telegramRoot.appendChild(script)
+		widgetMounted = true
 
 		onCleanup(() => {
 			delete window.onTelegramAuth
-			telegramRoot.replaceChildren()
+			telegramRoot?.replaceChildren()
 		})
 	})
 
@@ -451,7 +448,7 @@ const Login = (props) => {
 								Облачное хранилище через Telegram – быстро, надежно и безопасно
 							</Typography>
 							<Typography variant="body1" sx={{ color: palette().secondary, maxWidth: 640 }}>
-								Входите через Telegram, подключайте токены ботов и управляйте мультиоблаками с ролями доступа и PWA‑поддержкой.
+								Входите через Telegram, подключайте токены ботов и управляйте мультиоблаками с шарингом по ссылке и PWA‑поддержкой.
 							</Typography>
 							<Stack spacing={1.2}>
 								{heroBullets.map((text) => (
@@ -629,7 +626,7 @@ const Login = (props) => {
 								Почему Telegram-облако
 							</Typography>
 							<Typography variant="body1" sx={{ color: palette().secondary }}>
-								Если вы привыкли к дискам вроде Яндекс.Диска или Google Drive — здесь тот же сценарий “файлы под рукой”, но с Telegram-инфраструктурой и ролями доступа.
+								Если вы привыкли к дискам вроде Яндекс.Диска или Google Drive — здесь тот же сценарий “файлы под рукой”, но с Telegram-инфраструктурой, приватностью и шарингом по ссылке.
 							</Typography>
 						</Box>
 						<Box
@@ -727,10 +724,10 @@ const Login = (props) => {
 									Пример: мультиоблако
 								</Typography>
 								<Typography variant="body2" sx={{ color: palette().secondary, mb: 2 }}>
-									Роли ограничивают действия: Viewer — просмотр, Editor — загрузка/удаление, Admin — управление ботами.
+									Несколько ботов ускоряют загрузку и отдачу, шаринг по ссылке включается и выключается по кнопке.
 								</Typography>
 								<Stack spacing={1.2}>
-									{['Маркетинг — Viewer', 'Файлы команды — Editor', 'Продажи — Admin'].map((item) => (
+									{['Маркетинг — приватно', 'Файлы команды — ссылка включена', 'Продажи — ссылка выключена'].map((item) => (
 										<Paper
 											elevation={0}
 											sx={{
