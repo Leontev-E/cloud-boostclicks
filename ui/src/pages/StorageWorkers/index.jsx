@@ -6,6 +6,7 @@ import Button from '@suid/material/Button'
 import Box from '@suid/material/Box'
 import { Show, createSignal, mapArray, onMount } from 'solid-js'
 import { useNavigate } from '@solidjs/router'
+import Skeleton from '@suid/material/Skeleton'
 
 import API from '../../api'
 import { checkAuth } from '../../common/auth_guard'
@@ -15,12 +16,14 @@ const StorageWorkers = () => {
 	 * @type {[import("solid-js").Accessor<import("../../api").StorageWorker[]>, any]}
 	 */
 	const [storageWorkers, setStorageWorkers] = createSignal([])
+	const [isLoading, setIsLoading] = createSignal(true)
 	const navigate = useNavigate()
 
 	onMount(async () => {
 		checkAuth()
 		const storageWorkers = await API.storageWorkers.listStorageWorkers()
 		setStorageWorkers(storageWorkers)
+		setIsLoading(false)
 	})
 
 	const maskToken = (token) => {
@@ -74,17 +77,21 @@ const StorageWorkers = () => {
 				</Stack>
 			</Paper>
 
-			<Show
-				when={storageWorkers().length}
-				fallback={
-					<Paper sx={{ p: 4, textAlign: 'center' }}>
-						<Typography variant="h6">Боты пока не добавлены</Typography>
-						<Typography variant="body2" color="text.secondary">
-							Создайте первого бота и привяжите его к облаку.
-						</Typography>
-					</Paper>
-				}
-			>
+			<Show when={isLoading()}>
+				<Grid container spacing={2}>
+					{Array.from({ length: 3 }).map(() => (
+						<Grid item xs={12} md={6} lg={4}>
+							<Paper sx={{ p: 3 }}>
+								<Skeleton variant="text" width="60%" />
+								<Skeleton variant="text" width="40%" />
+								<Skeleton variant="text" width="50%" />
+							</Paper>
+						</Grid>
+					))}
+				</Grid>
+			</Show>
+
+			<Show when={!isLoading() && storageWorkers().length}>
 				<Grid container spacing={2}>
 					{mapArray(storageWorkers, (sw) => (
 						<Grid item xs={12} md={6} lg={4}>
@@ -102,6 +109,14 @@ const StorageWorkers = () => {
 						</Grid>
 					))}
 				</Grid>
+			</Show>
+			<Show when={!isLoading() && !storageWorkers().length}>
+				<Paper sx={{ p: 4, textAlign: 'center' }}>
+					<Typography variant="h6">Боты пока не добавлены</Typography>
+					<Typography variant="body2" color="text.secondary">
+						Создайте первого бота и привяжите его к облаку.
+					</Typography>
+				</Paper>
 			</Show>
 		</Stack>
 	)

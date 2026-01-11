@@ -114,6 +114,14 @@ pnpm cap:open:ios
 - Домен: `cloud.boostclicks.ru`.
 - Не храните `TELEGRAM_LOGIN_BOT_TOKEN` в репозитории.
 
+## UI checklist (коротко)
+
+- Брейкпоинты: xs ≤ 600px, sm 600–900, md 900–1200, lg 1200–1536, xl > 1536. Контент до 1100–1200px на desktop, padding 16px на mobile.
+- Таблицы/списки на mobile → карточки (Paper, border-radius 16–18, gap 12–16). Ключевые действия в одну-две кнопки с touch-target ≥ 44px.
+- Навигация: Desktop — sidebar + header. Mobile — bottom navigation (главные разделы), без горизонтального скролла всего экрана.
+- Отступы: секции 16–24px на mobile, 24–32px на desktop. Формы разбиваем на блоки, подписи/ошибки рядом.
+- Загрузки: skeleton для списков, прогресс-бар для загрузки/скачивания, понятные пустые состояния.
+
 ## Контакты разработчика
 
 BoostClicks — Евгений Леонтьев

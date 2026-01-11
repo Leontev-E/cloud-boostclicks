@@ -13,6 +13,8 @@ import InfoIcon from '@suid/icons-material/Info'
 import DeleteIcon from '@suid/icons-material/Delete'
 import ShareIcon from '@suid/icons-material/Share'
 import PreviewIcon from '@suid/icons-material/VisibilityOutlined'
+import Paper from '@suid/material/Paper'
+import Typography from '@suid/material/Typography'
 import { Show, createSignal } from 'solid-js'
 import { useNavigate, useParams } from '@solidjs/router'
 
@@ -230,23 +232,66 @@ const FSListItem = (props) => {
 
 	return (
 		<>
-			<ListItem disablePadding>
-				<ListItemButton onClick={handleNavigate}>
-					<ListItemIcon>
-						<Show when={props.fsElement.is_file} fallback={<FolderIcon />}>
-							<FileIcon />
-						</Show>
-					</ListItemIcon>
-					<ListItemText primary={props.fsElement.name} />
-				</ListItemButton>
-				<IconButton
-					onClick={(event) => {
-						setMoreAnchorEl(event.currentTarget)
+			<Paper
+				elevation={0}
+				sx={{
+					borderRadius: { xs: 2, md: 1.5 },
+					border: '1px solid rgba(15,23,42,0.08)',
+					boxShadow: {
+						xs: '0 12px 30px rgba(15,23,42,0.08)',
+						md: 'none',
+					},
+					bgcolor: 'background.paper',
+				}}
+			>
+				<ListItem
+					disablePadding
+					sx={{
+						alignItems: 'center',
+						px: { xs: 1.25, md: 0.5 },
+						py: { xs: 1, md: 0 },
 					}}
 				>
-					<MoreVertIcon />
-				</IconButton>
-			</ListItem>
+					<ListItemButton
+						onClick={handleNavigate}
+						sx={{
+							borderRadius: 1.5,
+							gap: 1,
+							py: { xs: 1, md: 0.75 },
+							px: { xs: 1, md: 1 },
+							minHeight: 56,
+							alignItems: 'center',
+						}}
+					>
+						<ListItemIcon sx={{ minWidth: 36 }}>
+							<Show when={props.fsElement.is_file} fallback={<FolderIcon />}>
+								<FileIcon />
+							</Show>
+						</ListItemIcon>
+						<ListItemText
+							primary={
+								<Typography sx={{ fontWeight: 700 }}>
+									{props.fsElement.name}
+								</Typography>
+							}
+							secondary={
+								<Typography variant="caption" color="text.secondary">
+									{props.fsElement.is_file ? 'Файл' : 'Папка'}
+								</Typography>
+							}
+						/>
+					</ListItemButton>
+					<IconButton
+						onClick={(event) => {
+							setMoreAnchorEl(event.currentTarget)
+						}}
+						aria-label="Дополнительные действия"
+						sx={{ mx: 0.5 }}
+					>
+						<MoreVertIcon />
+					</IconButton>
+				</ListItem>
+			</Paper>
 			<MenuMUI
 				id="basic-menu"
 				anchorEl={moreAnchorEl()}

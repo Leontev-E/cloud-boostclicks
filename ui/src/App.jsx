@@ -17,51 +17,34 @@ import Share from './pages/Share'
 const theme = createTheme({
 	palette: {
 		mode: 'light',
-		primary: {
-			main: '#2c5f5d',
-			contrastText: '#ffffff',
-		},
-		secondary: {
-			main: '#f6a04d',
-			contrastText: '#1b1a17',
-		},
-		background: {
-			default: '#f7f1e8',
-			paper: '#ffffff',
-		},
-		text: {
-			primary: '#1b1a17',
-			secondary: '#5f5a52',
-		},
+		primary: { main: '#1b6ef3', contrastText: '#ffffff' },
+		secondary: { main: '#f59e0b', contrastText: '#0f172a' },
+		background: { default: '#f5f7fb', paper: '#ffffff' },
+		text: { primary: '#0f172a', secondary: '#4b5565' },
 	},
-	shape: {
-		borderRadius: 18,
-	},
+	shape: { borderRadius: 16 },
 	typography: {
-		fontFamily: '"IBM Plex Sans", "Segoe UI", sans-serif',
-		h1: { fontFamily: '"Space Grotesk", "Segoe UI", sans-serif' },
-		h2: { fontFamily: '"Space Grotesk", "Segoe UI", sans-serif' },
-		h3: { fontFamily: '"Space Grotesk", "Segoe UI", sans-serif' },
-		h4: { fontFamily: '"Space Grotesk", "Segoe UI", sans-serif' },
-		h5: { fontFamily: '"Space Grotesk", "Segoe UI", sans-serif' },
-		h6: { fontFamily: '"Space Grotesk", "Segoe UI", sans-serif' },
+		fontFamily: '"Inter", "Segoe UI", sans-serif',
+		h1: { fontFamily: '"Space Grotesk", "Segoe UI", sans-serif', fontWeight: 800 },
+		h2: { fontFamily: '"Space Grotesk", "Segoe UI", sans-serif', fontWeight: 800 },
+		h3: { fontFamily: '"Space Grotesk", "Segoe UI", sans-serif', fontWeight: 700 },
 	},
 	components: {
 		MuiAppBar: {
 			styleOverrides: {
 				root: {
-					backgroundColor: 'rgba(255,255,255,0.86)',
-					color: '#1b1a17',
+					backgroundColor: 'rgba(255,255,255,0.9)',
+					color: '#0f172a',
 					backdropFilter: 'blur(16px)',
-					borderBottom: '1px solid rgba(27,26,23,0.08)',
+					borderBottom: '1px solid rgba(15,23,42,0.08)',
 				},
 			},
 		},
 		MuiPaper: {
 			styleOverrides: {
 				root: {
-					border: '1px solid rgba(27,26,23,0.08)',
-					boxShadow: '0 24px 60px rgba(27,26,23,0.12)',
+					border: '1px solid rgba(15,23,42,0.06)',
+					boxShadow: '0 16px 40px rgba(15,23,42,0.08)',
 				},
 			},
 		},
@@ -70,30 +53,35 @@ const theme = createTheme({
 				root: {
 					textTransform: 'none',
 					borderRadius: 14,
-					fontWeight: 600,
+					fontWeight: 700,
+					minHeight: 44,
+					boxShadow: 'none',
+					'&:hover': {
+						boxShadow: '0 12px 28px rgba(27,110,243,0.18)',
+					},
+					'&:focus-visible': {
+						outline: '2px solid #1b6ef3',
+						outlineOffset: 2,
+					},
 				},
 			},
 		},
 		MuiDrawer: {
 			styleOverrides: {
 				paper: {
-					backgroundColor: 'rgba(255,255,255,0.88)',
+					backgroundColor: 'rgba(255,255,255,0.92)',
 					backdropFilter: 'blur(16px)',
-					borderRight: '1px solid rgba(27,26,23,0.08)',
+					borderRight: '1px solid rgba(15,23,42,0.08)',
 				},
 			},
 		},
-		MuiChip: {
+		MuiChip: { styleOverrides: { root: { fontWeight: 700 } } },
+		MuiTableCell: { styleOverrides: { head: { fontWeight: 700 } } },
+		MuiContainer: {
 			styleOverrides: {
 				root: {
-					fontWeight: 600,
-				},
-			},
-		},
-		MuiTableCell: {
-			styleOverrides: {
-				head: {
-					fontWeight: 600,
+					paddingLeft: '16px',
+					paddingRight: '16px',
 				},
 			},
 		},

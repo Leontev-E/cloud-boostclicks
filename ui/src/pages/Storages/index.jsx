@@ -6,6 +6,7 @@ import Button from '@suid/material/Button'
 import Box from '@suid/material/Box'
 import { Show, createSignal, mapArray, onMount } from 'solid-js'
 import { useNavigate } from '@solidjs/router'
+import Skeleton from '@suid/material/Skeleton'
 
 import API from '../../api'
 import { convertSize } from '../../common/size_converter'
@@ -16,12 +17,14 @@ const Storages = () => {
 	 * @type {[import("solid-js").Accessor<import("../../api").StorageWithInfo[]>, any]}
 	 */
 	const [storages, setStorages] = createSignal([])
+	const [isLoading, setIsLoading] = createSignal(true)
 	const navigate = useNavigate()
 
 	onMount(async () => {
 		checkAuth()
 		const storagesSchema = await API.storages.listStorages()
 		setStorages(storagesSchema.storages)
+		setIsLoading(false)
 	})
 
 	return (
@@ -93,26 +96,20 @@ const Storages = () => {
 				</Stack>
 			</Paper>
 
-			<Show
-				when={storages().length}
-				fallback={
-					<Paper sx={{ p: 4, textAlign: 'center' }}>
-						<Typography variant="h6">Облака пока не созданы</Typography>
-						<Typography variant="body2" color="text.secondary">
-							Создайте первое облако и подключите Telegram-канал.
-						</Typography>
-					</Paper>
-				}
-			>
+			<Show when={!isLoading() && storages().length}>
 				<Grid container spacing={2}>
 					{mapArray(storages, (storage) => (
 						<Grid item xs={12} md={6} lg={4}>
 							<Paper
 								sx={{
 									p: 3,
+									height: '100%',
 									cursor: 'pointer',
-									transition: 'transform 0.2s ease',
-									'&:hover': { transform: 'translateY(-4px)' },
+									transition: 'transform 0.2s ease, box-shadow 0.2s ease',
+									'&:hover': {
+										transform: 'translateY(-4px)',
+										boxShadow: '0 16px 32px rgba(15,23,42,0.12)',
+									},
 								}}
 								onClick={() => navigate(`/storages/${storage.id}/files`)}
 							>
@@ -121,7 +118,7 @@ const Storages = () => {
 									<Typography variant="body2" color="text.secondary">
 										ID канала: {storage.chat_id}
 									</Typography>
-									<Stack direction="row" spacing={2}>
+									<Stack direction="row" spacing={2} sx={{ flexWrap: 'wrap', gap: 1 }}>
 										<Typography variant="body2">
 											Размер: {convertSize(storage.size)}
 										</Typography>
@@ -134,6 +131,27 @@ const Storages = () => {
 						</Grid>
 					))}
 				</Grid>
+			</Show>
+			<Show when={isLoading()}>
+				<Grid container spacing={2}>
+					{Array.from({ length: 3 }).map(() => (
+						<Grid item xs={12} md={6} lg={4}>
+							<Paper sx={{ p: 3 }}>
+								<Skeleton variant="text" width="60%" />
+								<Skeleton variant="text" width="40%" />
+								<Skeleton variant="rectangular" height={12} sx={{ mt: 1 }} />
+							</Paper>
+						</Grid>
+					))}
+				</Grid>
+			</Show>
+			<Show when={!isLoading() && !storages().length}>
+				<Paper sx={{ p: 4, textAlign: 'center' }}>
+					<Typography variant="h6">Облака пока не созданы</Typography>
+					<Typography variant="body2" color="text.secondary">
+						Создайте первое облако и подключите Telegram-канал.
+					</Typography>
+				</Paper>
 			</Show>
 		</Stack>
 	)

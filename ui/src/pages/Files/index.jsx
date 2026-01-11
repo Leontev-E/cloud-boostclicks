@@ -1,6 +1,5 @@
 ﻿import { useBeforeLeave, useNavigate, useParams } from '@solidjs/router'
 import { Show, createSignal, mapArray, onCleanup, onMount } from 'solid-js'
-import List from '@suid/material/List'
 import MenuItem from '@suid/material/MenuItem'
 import ListItemIcon from '@suid/material/ListItemIcon'
 import ListItemText from '@suid/material/ListItemText'
@@ -13,6 +12,7 @@ import Divider from '@suid/material/Divider'
 import Paper from '@suid/material/Paper'
 import LinearProgress from '@suid/material/LinearProgress'
 import Box from '@suid/material/Box'
+import Skeleton from '@suid/material/Skeleton'
 
 import API from '../../api'
 import FSListItem from '../../components/FSListItem'
@@ -42,6 +42,7 @@ const Files = () => {
 	const [isDownloading, setIsDownloading] = createSignal(false)
 	const [downloadProgress, setDownloadProgress] = createSignal(0)
 	const [downloadName, setDownloadName] = createSignal('')
+	const [isLoading, setIsLoading] = createSignal(true)
 	const navigate = useNavigate()
 	const params = useParams()
 	const basePath = `/storages/${params.id}/files`
@@ -68,17 +69,22 @@ const Files = () => {
 	}
 
 	const fetchFSLayer = async (path = params.path) => {
-		const safePath = decodePath(path || '')
-		const fsLayerRes = await API.files.getFSLayer(params.id, safePath)
+		setIsLoading(true)
+		try {
+			const safePath = decodePath(path || '')
+			const fsLayerRes = await API.files.getFSLayer(params.id, safePath)
 
-		if (safePath.length) {
-			const parentPath = safePath.split('/').slice(0, -1).join('/')
-			const backToParent = { is_file: false, name: '..', path: parentPath }
+			if (safePath.length) {
+				const parentPath = safePath.split('/').slice(0, -1).join('/')
+				const backToParent = { is_file: false, name: '..', path: parentPath }
 
-			fsLayerRes.splice(0, 0, backToParent)
+				fsLayerRes.splice(0, 0, backToParent)
+			}
+
+			setFsLayer(fsLayerRes)
+		} finally {
+			setIsLoading(false)
 		}
-
-		setFsLayer(fsLayerRes)
 	}
 
 	const reload = async () => {
@@ -291,54 +297,62 @@ const Files = () => {
 				</Show>
 
 				<Grid>
+					<Show when={isUploading()}>
+						<Box sx={{ px: 1, pb: 1.5 }}>
+							<LinearProgress variant="determinate" value={uploadProgress()} />
+							<Typography variant="caption" color="text.secondary">
+								Загрузка файлов в облако: {uploadProgress()}%
+								{uploadNote() ? ` · ${uploadNote()}` : ''}
+							</Typography>
+						</Box>
+					</Show>
+					<Show when={isDownloading()}>
+						<Box sx={{ px: 1, pb: 1.5 }}>
+							<LinearProgress variant="determinate" value={downloadProgress()} />
+							<Typography variant="caption" color="text.secondary">
+								Скачивание: {downloadName()} · {downloadProgress()}%
+							</Typography>
+						</Box>
+					</Show>
+
 					<Show
-						when={fsLayer().length}
+						when={!isLoading() && fsLayer().length}
 						fallback={
 							<Paper sx={{ p: 3, textAlign: 'center' }}>
-								<Typography variant="h6">В этой папке пока пусто</Typography>
-								<Typography variant="body2" color="text.secondary">
-									Создайте папку или загрузите первые файлы.
-								</Typography>
+								<Show
+									when={!isLoading()}
+									fallback={
+										<Stack spacing={1.2}>
+											{Array.from({ length: 4 }).map(() => (
+												<Paper sx={{ p: 2, borderRadius: 2 }}>
+													<Skeleton variant="text" width="60%" />
+													<Skeleton variant="text" width="40%" />
+												</Paper>
+											))}
+										</Stack>
+									}
+								>
+									<Typography variant="h6">В этой папке пока пусто</Typography>
+									<Typography variant="body2" color="text.secondary">
+										Создайте папку или загрузите первые файлы.
+									</Typography>
+								</Show>
 							</Paper>
 						}
 					>
-						<List sx={{ minWidth: 320, maxWidth: 540, mx: 'auto' }}>
-							<Show when={isUploading()}>
-								<Box sx={{ px: 2, pb: 1 }}>
-									<LinearProgress variant="determinate" value={uploadProgress()} />
-									<Typography variant="caption" color="text.secondary">
-										Загрузка файлов в облако: {uploadProgress()}%
-										{uploadNote() ? ` · ${uploadNote()}` : ''}
-									</Typography>
-								</Box>
-							</Show>
-							<Show when={isDownloading()}>
-								<Box sx={{ px: 2, pb: 1 }}>
-									<LinearProgress
-										variant="determinate"
-										value={downloadProgress()}
-									/>
-									<Typography variant="caption" color="text.secondary">
-										Скачивание: {downloadName()} · {downloadProgress()}%
-									</Typography>
-								</Box>
-							</Show>
-							<Divider />
+						<Stack spacing={1.25}>
 							{mapArray(fsLayer, (fsElement) => (
-								<>
-									<FSListItem
-										fsElement={fsElement}
-										storageId={params.id}
-										onDelete={fetchFSLayer}
-										onPreview={openPreview}
-										onDownloadStart={handleDownloadStart}
-										onDownloadProgress={handleDownloadProgress}
-										onDownloadEnd={handleDownloadEnd}
-									/>
-									<Divider />
-								</>
+								<FSListItem
+									fsElement={fsElement}
+									storageId={params.id}
+									onDelete={fetchFSLayer}
+									onPreview={openPreview}
+									onDownloadStart={handleDownloadStart}
+									onDownloadProgress={handleDownloadProgress}
+									onDownloadEnd={handleDownloadEnd}
+								/>
 							))}
-						</List>
+						</Stack>
 					</Show>
 				</Grid>
 
