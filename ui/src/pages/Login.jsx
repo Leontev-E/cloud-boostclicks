@@ -371,9 +371,6 @@ const Login = (props) => {
 				maxWidth="lg"
 				sx={{ py: { xs: 2.5, md: 3 }, display: 'flex', alignItems: 'center', gap: 2 }}
 			>
-				<Typography variant="subtitle1" sx={{ fontWeight: 800 }}>
-					cloud.boostclicks
-				</Typography>
 				<Box sx={{ flex: 1 }} />
 				<Stack direction="row" spacing={1} sx={{ alignItems: 'center' }}>
 					{navLinks.map((link) =>
@@ -408,7 +405,7 @@ const Login = (props) => {
 				<Grid container spacing={{ xs: 3, md: 4 }} alignItems="center">
 					<Grid item xs={12} md={7}>
 						<Stack spacing={2}>
-							<Typography variant="overline" sx={{ letterSpacing: 0.4, color: palette().secondary }}>
+							<Typography variant="h6" sx={{ fontWeight: 800, color: '#f97316' }}>
 								cloud.boostclicks
 							</Typography>
 							<Typography variant="h1" sx={{ fontSize: { xs: 30, md: 40 }, fontWeight: 800 }}>
@@ -469,14 +466,22 @@ const Login = (props) => {
 										bgcolor: '#f8fafc',
 									}}
 								>
-									<Show when={!isTelegramReady()}>
-										<Stack spacing={1} alignItems="center" sx={{ width: '100%' }}>
+									<Stack spacing={1} alignItems="center" sx={{ width: '100%' }}>
+										<Show when={!isTelegramReady()}>
 											<Skeleton variant="rectangular" width="100%" height={48} />
+											<Button
+												variant="contained"
+												color="primary"
+												onClick={() => mountTelegramWidget()}
+												sx={{ width: '100%' }}
+											>
+												Войти через Telegram
+											</Button>
 											<Typography variant="caption" sx={{ color: palette().secondary }}>
 												Загружаем Telegram-виджет...
 											</Typography>
-										</Stack>
-									</Show>
+										</Show>
+									</Stack>
 								</Box>
 								{telegramError() ? <Alert severity="warning">{telegramError()}</Alert> : null}
 
@@ -546,7 +551,7 @@ const Login = (props) => {
 				<Container maxWidth="lg">
 					<Paper
 						component="a"
-						href="https://down-web.ru"
+						href="https://t.me/boostclicks"
 						target="_blank"
 						rel="noopener"
 						elevation={0}
@@ -577,10 +582,7 @@ const Login = (props) => {
 								Партнеры cloud.boostclicks
 							</Typography>
 							<Typography variant="h6" sx={{ fontWeight: 700 }}>
-								Полезный сервис от наших друзей
-							</Typography>
-							<Typography variant="body2" sx={{ color: palette().secondary }}>
-								Нажмите, чтобы узнать больше. Баннер оформлен в стиле cloud.boostclicks.
+								BoostClicks в Telegram
 							</Typography>
 						</Stack>
 					</Paper>
