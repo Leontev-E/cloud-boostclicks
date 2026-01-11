@@ -1,7 +1,7 @@
 ﻿use std::{collections::HashMap, path::Path, sync::Arc};
 
 use axum::{
-    body::Full,
+    body::{Full, StreamBody},
     extract::{DefaultBodyLimit, Multipart, Path as RoutePath, Query, State},
     http::StatusCode,
     middleware,
@@ -9,6 +9,7 @@ use axum::{
     routing::{get, post},
     Extension, Json, Router,
 };
+use futures::{StreamExt, TryStreamExt};
 use reqwest::header;
 use serde_json::json;
 use tokio_util::bytes::Bytes;
@@ -276,31 +277,30 @@ impl FilesRouter {
         storage_id: Uuid,
         path: &str,
     ) -> Result<Response, (StatusCode, String)> {
-        FilesService::new(&state.db, state.config.clone(), state.tx.clone())
-            .download(path, storage_id, &user)
+        let filename = Path::new(&path)
+            .file_name()
+            .map(|name| name.to_str().unwrap_or_default())
+            .unwrap_or("unnamed.bin");
+        let content_type = mime_guess::from_path(filename)
+            .first_or_octet_stream()
+            .to_string();
+
+        let stream = FilesService::new(&state.db, state.config.clone(), state.tx.clone())
+            .download_stream(path, storage_id, &user)
             .await
-            .map(|data| {
-                let filename = Path::new(&path)
-                    .file_name()
-                    .map(|name| name.to_str().unwrap_or_default())
-                    .unwrap_or("unnamed.bin");
-                let content_type = mime_guess::from_path(filename)
-                    .first_or_octet_stream()
-                    .to_string();
-                let bytes = Bytes::from(data);
-                let body = Full::new(bytes);
+            .map_err(|e| <(StatusCode, String)>::from(e))?;
 
-                let headers = AppendHeaders([
-                    (header::CONTENT_TYPE, content_type),
-                    (
-                        header::CONTENT_DISPOSITION,
-                        format!("attachment; filename=\"{filename}\""),
-                    ),
-                ]);
+        let body_stream = stream.map_err(|e| std::io::Error::new(std::io::ErrorKind::Other, e.to_string()));
+        let body = StreamBody::new(body_stream);
+        let headers = AppendHeaders([
+            (header::CONTENT_TYPE, content_type),
+            (
+                header::CONTENT_DISPOSITION,
+                format!("attachment; filename=\"{filename}\""),
+            ),
+        ]);
 
-                (headers, body).into_response()
-            })
-            .map_err(|e| <(StatusCode, String)>::from(e))
+        Ok((headers, body).into_response())
     }
 
     async fn download_folder(

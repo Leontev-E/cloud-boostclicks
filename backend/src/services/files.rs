@@ -1,6 +1,7 @@
 ﻿use axum::body::Bytes;
 use sqlx::PgPool;
 use tokio::sync::oneshot;
+use tokio_stream::Stream;
 use uuid::Uuid;
 
 use crate::{
@@ -254,6 +255,38 @@ impl<'d> FilesService<'d> {
         let file = self.repo.get_file_by_path(path, storage_id).await?;
 
         self.download_file_by_id(file.id, storage_id, user.id).await
+    }
+
+    pub async fn download_stream(
+        &self,
+        path: &str,
+        storage_id: Uuid,
+        user: &AuthUser,
+    ) -> CloudBoostclicksResult<Pin<Box<dyn Stream<Item = CloudBoostclicksResult<Bytes>> + Send>>> {
+        check_access(&self.access_repo, user.id, storage_id, &AccessType::R).await?;
+
+        if !Self::validate_path(path) {
+            return Err(CloudBoostclicksError::InvalidPath);
+        }
+
+        let file = self.repo.get_file_by_path(path, storage_id).await?;
+        let mut chunks = self.repo.list_chunks_of_file(file.id).await?;
+        chunks.sort_by_key(|c| c.position);
+
+        let storage_manager =
+            StorageManagerService::new(self.db, &self.config.telegram_api_base_url, self.config.telegram_rate_limit);
+
+        let stream = async_stream::try_stream! {
+            for chunk in chunks {
+                let data = storage_manager
+                    .download_chunk(storage_id, chunk)
+                    .await?
+                    .data;
+                yield Bytes::from(data);
+            }
+        };
+
+        Ok(Box::pin(stream))
     }
 
     pub async fn list_dir(

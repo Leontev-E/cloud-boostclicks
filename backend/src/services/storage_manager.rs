@@ -111,7 +111,7 @@ impl<'d> StorageManagerService<'d> {
         Ok(file)
     }
 
-    async fn download_chunk(
+    pub async fn download_chunk(
         &self,
         storage_id: Uuid,
         chunk: FileChunk,
