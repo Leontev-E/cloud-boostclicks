@@ -69,7 +69,7 @@ const Storages = () => {
 					<Typography variant="body2" color="text.secondary">
 						2) Получите ID канала: добавьте @userinfobot или @getmyid_bot
 						в канал и отправьте сообщение, либо перешлите сообщение из
-						канала в бота. ID будет вида -1001234567890.
+						канала в бота. ID будет вида -123456789.
 					</Typography>
 					<Typography variant="body2" color="text.secondary">
 						3) Создайте облако, указав название и ID канала.

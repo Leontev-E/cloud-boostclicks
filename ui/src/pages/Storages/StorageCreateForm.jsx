@@ -18,7 +18,7 @@ const StorageCreateForm = () => {
 	const { addAlert } = alertStore
 	const navigate = useNavigate()
 	const chatIdHint =
-		'Как получить ID: добавьте @userinfobot или @getmyid_bot в канал и отправьте сообщение, либо перешлите сообщение из канала боту. ID будет вида -1001234567890.'
+		'Как получить ID: добавьте @userinfobot или @getmyid_bot в канал и отправьте сообщение, либо перешлите сообщение из канала боту. ID будет вида -123456789.'
 
 	onMount(checkAuth)
 
