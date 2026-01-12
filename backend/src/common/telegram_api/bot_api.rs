@@ -1,35 +1,28 @@
 ﻿use reqwest::multipart;
-use uuid::Uuid;
-
 use crate::{
-    common::types::ChatId, errors::CloudBoostclicksResult,
-    services::storage_workers_scheduler::StorageWorkersScheduler,
+    common::types::ChatId,
+    errors::CloudBoostclicksResult,
 };
 
 use super::schemas::{DownloadBodySchema, UploadBodySchema, UploadSchema};
 
 pub struct TelegramBotApi<'t> {
     base_url: &'t str,
-    scheduler: StorageWorkersScheduler<'t>,
 }
 
 impl<'t> TelegramBotApi<'t> {
-    pub fn new(base_url: &'t str, scheduler: StorageWorkersScheduler<'t>) -> Self {
-        Self {
-            base_url,
-            scheduler,
-        }
+    pub fn new(base_url: &'t str) -> Self {
+        Self { base_url }
     }
 
     pub async fn upload(
         &self,
         file: &[u8],
         chat_id: ChatId,
-        storage_id: Uuid,
+        token: String,
     ) -> CloudBoostclicksResult<UploadSchema> {
         let chat_id = Self::normalize_chat_id(chat_id);
 
-        let token = self.scheduler.get_token(storage_id).await?;
         let url = self.build_url("", "sendDocument", token);
 
         let file_part =
@@ -54,10 +47,9 @@ impl<'t> TelegramBotApi<'t> {
     pub async fn download(
         &self,
         telegram_file_id: &str,
-        storage_id: Uuid,
+        token: String,
     ) -> CloudBoostclicksResult<Vec<u8>> {
         // getting file path
-        let token = self.scheduler.get_token(storage_id).await?;
         let url = self.build_url("", "getFile", token);
         // TODO: add retries with their number taking from env
         let body: DownloadBodySchema = reqwest::Client::new()
@@ -69,7 +61,6 @@ impl<'t> TelegramBotApi<'t> {
             .await?;
 
         // downloading the file itself
-        let token = self.scheduler.get_token(storage_id).await?;
         let url = self.build_url("file/", &body.result.file_path, token);
         let file = reqwest::get(url)
             .await?

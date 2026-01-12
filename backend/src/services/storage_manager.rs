@@ -76,9 +76,10 @@ impl<'d> StorageManagerService<'d> {
         bytes_chunk: &[u8],
     ) -> CloudBoostclicksResult<FileChunk> {
         let scheduler = StorageWorkersScheduler::new(self.db, self.rate_limit);
+        let worker = scheduler.get_token(storage_id).await?;
 
-        let document = TelegramBotApi::new(self.telegram_baseurl, scheduler)
-            .upload(bytes_chunk, chat_id, storage_id)
+        let document = TelegramBotApi::new(self.telegram_baseurl)
+            .upload(bytes_chunk, chat_id, worker.token.clone())
             .await?;
 
         tracing::debug!(
@@ -87,7 +88,13 @@ impl<'d> StorageManagerService<'d> {
             position
         );
 
-        let chunk = FileChunk::new(Uuid::new_v4(), file_id, document.file_id, position as i16);
+        let chunk = FileChunk::new(
+            Uuid::new_v4(),
+            file_id,
+            document.file_id,
+            Some(worker.id),
+            position as i16,
+        );
         Ok(chunk)
     }
 
@@ -117,9 +124,14 @@ impl<'d> StorageManagerService<'d> {
         chunk: FileChunk,
     ) -> CloudBoostclicksResult<DownloadedChunkSchema> {
         let scheduler = StorageWorkersScheduler::new(self.db, self.rate_limit);
+        let token_schema = if let Some(worker_id) = chunk.storage_worker_id {
+            scheduler.get_token_for_worker(worker_id).await?
+        } else {
+            scheduler.get_token(storage_id).await?
+        };
 
-        let file = TelegramBotApi::new(self.telegram_baseurl, scheduler)
-            .download(&chunk.telegram_file_id, storage_id)
+        let file = TelegramBotApi::new(self.telegram_baseurl)
+            .download(&chunk.telegram_file_id, token_schema.token.clone())
             .await
             .map(|data| DownloadedChunkSchema::new(chunk.position, data))?;
 

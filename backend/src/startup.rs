@@ -144,8 +144,38 @@ pub async fn init_db(db: &PgPool) {
                                                 ON DELETE CASCADE 
                                                 ON UPDATE CASCADE,
             telegram_file_id VARCHAR(255) NOT NULL,
+            storage_worker_id UUID        REFERENCES storage_workers
+                                                ON DELETE CASCADE
+                                                ON UPDATE CASCADE,
             position         SmallInt     NOT NULL
         );
+    ",
+        "
+        ALTER TABLE file_chunks
+            ADD COLUMN IF NOT EXISTS storage_worker_id UUID REFERENCES storage_workers
+                ON DELETE CASCADE
+                ON UPDATE CASCADE;
+    ",
+        "
+        UPDATE file_chunks fc
+        SET storage_worker_id = sub.storage_worker_id
+        FROM (
+            SELECT fc.id, COALESCE(
+                (
+                    SELECT sw.id
+                    FROM storage_workers sw
+                    JOIN files f2 ON sw.storage_id = f2.storage_id
+                    WHERE f2.id = fc.file_id
+                    ORDER BY sw.id
+                    LIMIT 1
+                ),
+                (
+                    SELECT sw.id FROM storage_workers sw LIMIT 1
+                )
+            ) AS storage_worker_id
+            FROM file_chunks fc
+        ) sub
+        WHERE fc.id = sub.id AND fc.storage_worker_id IS NULL;
     ",
         "
         CREATE TABLE IF NOT EXISTS storage_workers_usages (

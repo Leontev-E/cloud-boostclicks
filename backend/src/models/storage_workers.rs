@@ -52,6 +52,7 @@ impl StorageWorker {
 
 #[derive(Debug, sqlx::FromRow)]
 pub struct StorageWorkerTokenOnly {
+    pub id: uuid::Uuid,
     pub token: String,
 }
 

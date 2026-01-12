@@ -132,7 +132,7 @@ impl<'d> StorageWorkersRepository<'d> {
                 SELECT $3, storage_worker_id FROM sw
                 RETURNING storage_worker_id
             )
-            SELECT token
+            SELECT sw.id, token
             FROM swu
             JOIN {STORAGE_WORKERS_TABLE} sw ON swu.storage_worker_id = sw.id;
         "
@@ -140,6 +140,57 @@ impl<'d> StorageWorkersRepository<'d> {
         .bind(storage_id)
         .bind(limit as i16)
         .bind(new_id)
+        .fetch_optional(&mut *transaction)
+        .await
+        .map_err(|e| map_not_found(e, "some entity"))?;
+
+        transaction
+            .commit()
+            .await
+            .map_err(|e| map_not_found(e, ""))?;
+
+        Ok(token)
+    }
+
+    pub async fn get_token_by_id(
+        &self,
+        storage_worker_id: Uuid,
+        limit: u8,
+    ) -> CloudBoostclicksResult<Option<StorageWorkerTokenOnly>> {
+        let mut transaction = self.db.begin().await.map_err(|e| map_not_found(e, ""))?;
+
+        sqlx::query(&format!(
+            "
+            DELETE FROM {STORAGE_WORKERS_USAGES_TABLE}
+            WHERE dt < NOW() - INTERVAL '1 minute';
+            "
+        ))
+        .execute(&mut *transaction)
+        .await
+        .map_err(|e| map_not_found(e, "some entity"))?;
+
+        let new_id = Uuid::new_v4();
+        let token = sqlx::query_as(&format!(
+            "
+            WITH swu AS (
+                INSERT INTO {STORAGE_WORKERS_USAGES_TABLE} (id, storage_worker_id)
+                SELECT $2, sw.id
+                FROM {STORAGE_WORKERS_TABLE} sw
+                LEFT JOIN {STORAGE_WORKERS_USAGES_TABLE} swu ON sw.id = swu.storage_worker_id
+                WHERE sw.id = $1
+                GROUP BY sw.id
+                HAVING COUNT(swu.id) < $3
+                LIMIT 1
+                RETURNING storage_worker_id
+            )
+            SELECT sw.id, sw.token
+            FROM swu
+            JOIN {STORAGE_WORKERS_TABLE} sw ON swu.storage_worker_id = sw.id;
+        "
+        ))
+        .bind(storage_worker_id)
+        .bind(new_id)
+        .bind(limit as i16)
         .fetch_optional(&mut *transaction)
         .await
         .map_err(|e| map_not_found(e, "some entity"))?;

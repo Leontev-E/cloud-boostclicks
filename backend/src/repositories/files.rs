@@ -170,13 +170,14 @@ impl<'d> FilesRepository<'d> {
 
     pub async fn create_chunks_batch(&self, chunks: Vec<FileChunk>) -> CloudBoostclicksResult<()> {
         QueryBuilder::new(
-            format!("INSERT INTO {CHUNKS_TABLE} (id, file_id, telegram_file_id, position)")
+            format!("INSERT INTO {CHUNKS_TABLE} (id, file_id, telegram_file_id, storage_worker_id, position)")
                 .as_str(),
         )
         .push_values(chunks, |mut q, chunk| {
             q.push_bind(chunk.id)
                 .push_bind(chunk.file_id)
                 .push_bind(chunk.telegram_file_id)
+                .push_bind(chunk.storage_worker_id)
                 .push_bind(chunk.position);
         })
         .build()

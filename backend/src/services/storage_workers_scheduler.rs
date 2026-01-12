@@ -4,7 +4,11 @@ use sqlx::PgPool;
 use tokio::time::sleep;
 use uuid::Uuid;
 
-use crate::{errors::CloudBoostclicksResult, repositories::storage_workers::StorageWorkersRepository};
+use crate::{
+    errors::CloudBoostclicksResult,
+    models::storage_workers::StorageWorkerTokenOnly,
+    repositories::storage_workers::StorageWorkersRepository,
+};
 
 /// Manages storage workers by limiting their usage
 pub struct StorageWorkersScheduler<'d> {
@@ -18,16 +22,36 @@ impl<'d> StorageWorkersScheduler<'d> {
         Self { repo, rate }
     }
 
-    pub async fn get_token(&self, storage_id: Uuid) -> CloudBoostclicksResult<String> {
+    pub async fn get_token(&self, storage_id: Uuid) -> CloudBoostclicksResult<StorageWorkerTokenOnly> {
         loop {
             // attempting
             if let Some(schema) = self.repo.get_token(storage_id, self.rate).await? {
-                return Ok(schema.token);
+                return Ok(schema);
             };
 
             // waiting for a while
             tracing::debug!(
                 "[TELEGRAM API] waiting for getting a token for a storage with id \"{storage_id}\"",
+            );
+            sleep(Duration::from_secs(1)).await;
+        }
+    }
+
+    pub async fn get_token_for_worker(
+        &self,
+        storage_worker_id: Uuid,
+    ) -> CloudBoostclicksResult<StorageWorkerTokenOnly> {
+        loop {
+            if let Some(schema) = self
+                .repo
+                .get_token_by_id(storage_worker_id, self.rate)
+                .await?
+            {
+                return Ok(schema);
+            }
+
+            tracing::debug!(
+                "[TELEGRAM API] waiting for specific worker token \"{storage_worker_id}\""
             );
             sleep(Duration::from_secs(1)).await;
         }
