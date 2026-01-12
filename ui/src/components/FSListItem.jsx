@@ -10,7 +10,6 @@ import DownloadIcon from '@suid/icons-material/Download'
 import InfoIcon from '@suid/icons-material/Info'
 import DeleteIcon from '@suid/icons-material/Delete'
 import ShareIcon from '@suid/icons-material/Share'
-import PreviewIcon from '@suid/icons-material/VisibilityOutlined'
 import Paper from '@suid/material/Paper'
 import Typography from '@suid/material/Typography'
 import { Show, createSignal } from 'solid-js'
@@ -37,7 +36,6 @@ import ShareDialog from './ShareDialog'
  * @property {import("../api").FSElement} fsElement
  * @property {string} storageId
  * @property {() => {}} onDelete
- * @property {(file: import("../api").FSElement) => void} [onPreview]
  * @property {(name: string) => void} [onDownloadStart]
  * @property {(pct: number | null) => void} [onDownloadProgress]
  * @property {() => void} [onDownloadEnd]
@@ -112,8 +110,8 @@ const FSListItem = (props) => {
 			navigate(
 				`/storages/${props.storageId}/files/${encodePath(props.fsElement.path)}`
 			)
-		} else if (props.onPreview) {
-			props.onPreview(props.fsElement)
+		} else {
+			setIsInfoDialogOpened(true)
 		}
 	}
 
@@ -158,11 +156,6 @@ const FSListItem = (props) => {
 	}
 	const closeActionConfirmDialog = () => {
 		setIsActionConfirmDialogOpened(false)
-	}
-
-	const openPreviewDialog = () => {
-		handleCloseMore()
-		props.onPreview?.(props.fsElement)
 	}
 
 	const openShareDialog = async () => {
@@ -325,27 +318,18 @@ const FSListItem = (props) => {
 					</IconButton>
 				</ListItem>
 			</Paper>
-			<MenuMUI
-				id="basic-menu"
-				anchorEl={moreAnchorEl()}
-				open={openMore()}
-				onClose={handleCloseMore}
-				MenuListProps={{ 'aria-labelledby': 'basic-button' }}
-			>
-				<Show when={props.fsElement.is_file}>
-					<MenuItem onClick={openPreviewDialog}>
+				<MenuMUI
+					id="basic-menu"
+					anchorEl={moreAnchorEl()}
+					open={openMore()}
+					onClose={handleCloseMore}
+					MenuListProps={{ 'aria-labelledby': 'basic-button' }}
+				>
+					<MenuItem onClick={() => setIsInfoDialogOpened(true)}>
 						<ListItemIcon>
-							<PreviewIcon fontSize="small" />
+							<InfoIcon fontSize="small" />
 						</ListItemIcon>
-						<ListItemText>Предпросмотр</ListItemText>
-					</MenuItem>
-				</Show>
-
-				<MenuItem onClick={() => setIsInfoDialogOpened(true)}>
-					<ListItemIcon>
-						<InfoIcon fontSize="small" />
-					</ListItemIcon>
-					<ListItemText>Информация</ListItemText>
+						<ListItemText>Информация</ListItemText>
 				</MenuItem>
 
 				<MenuItem onClick={download}>
@@ -381,11 +365,12 @@ const FSListItem = (props) => {
 				onCancel={closeActionConfirmDialog}
 			/>
 
-			<FileInfoDialog
-				file={props.fsElement}
-				isOpened={isInfoDialogOpened()}
-				onClose={() => setIsInfoDialogOpened(false)}
-			/>
+				<FileInfoDialog
+					file={props.fsElement}
+					isOpened={isInfoDialogOpened()}
+					onClose={() => setIsInfoDialogOpened(false)}
+					onDownload={download}
+				/>
 
 			<ShareDialog
 				isOpened={isShareDialogOpened()}

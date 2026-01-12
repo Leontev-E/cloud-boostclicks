@@ -367,7 +367,11 @@ const Login = (props) => {
 				maxWidth="lg"
 				sx={{ py: { xs: 2.5, md: 3 }, display: 'flex', alignItems: 'center', gap: 2 }}
 			>
-				<Stack direction="row" spacing={1} sx={{ alignItems: 'center', justifyContent: 'flex-end', width: '100%' }}>
+				<Stack
+					direction="row"
+					spacing={1}
+					sx={{ alignItems: 'center', justifyContent: 'flex-end', width: '100%', display: { xs: 'none', md: 'flex' } }}
+				>
 					{navLinks.map((link) =>
 						link.external ? (
 							<Button

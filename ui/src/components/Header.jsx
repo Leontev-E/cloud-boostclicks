@@ -2,12 +2,15 @@ import AppBar from '@suid/material/AppBar'
 import Toolbar from '@suid/material/Toolbar'
 import Typography from '@suid/material/Typography'
 import IconButton from '@suid/material/IconButton'
+import MenuIcon from '@suid/icons-material/Menu'
 import { A, useNavigate } from '@solidjs/router'
 import LogoutIcon from '@suid/icons-material/Logout'
 import Box from '@suid/material/Box'
 import Chip from '@suid/material/Chip'
 import Button from '@suid/material/Button'
-import { Show } from 'solid-js'
+import Menu from '@suid/material/Menu'
+import MenuItem from '@suid/material/MenuItem'
+import { Show, createSignal } from 'solid-js'
 
 import AppIcon from './AppIcon'
 import createLocalStore from '../../libs'
@@ -17,14 +20,17 @@ const Header = () => {
 	const navigate = useNavigate()
 	const userLabel = () => store.user?.displayName || store.user?.identifier
 	const isAuthenticated = () => Boolean(store.access_token)
+	const [mobileAnchor, setMobileAnchor] = createSignal(null)
+	const mobileMenuOpen = () => Boolean(mobileAnchor())
 
-	const logout = (_) => {
+	const logout = () => {
 		setStore('access_token', null)
 		setStore('user', null)
 		setStore('redirect', '/')
-
 		navigate('/login')
 	}
+
+	const closeMobileMenu = () => setMobileAnchor(null)
 
 	return (
 		<AppBar
@@ -36,7 +42,7 @@ const Header = () => {
 				color: '#0f172a',
 			}}
 		>
-			<Toolbar sx={{ justifyContent: 'space-between', gap: 2 }}>
+			<Toolbar sx={{ justifyContent: 'space-between', gap: 2, flexWrap: 'wrap' }}>
 				<A href="/">
 					<Box sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
 						<AppIcon />
@@ -46,7 +52,7 @@ const Header = () => {
 					</Box>
 				</A>
 
-				<Box sx={{ display: 'flex', alignItems: 'center', gap: 1.5 }}>
+				<Box sx={{ display: { xs: 'none', md: 'flex' }, alignItems: 'center', gap: 1.5 }}>
 					<Button variant="text" component="a" href="/storages">
 						Облака
 					</Button>
@@ -66,6 +72,47 @@ const Header = () => {
 							<LogoutIcon />
 						</IconButton>
 					</Show>
+				</Box>
+
+				<Box sx={{ display: { xs: 'flex', md: 'none' }, alignItems: 'center' }}>
+					<IconButton
+						aria-label="Меню"
+						onClick={(e) => setMobileAnchor(e.currentTarget)}
+						size="large"
+					>
+						<MenuIcon />
+					</IconButton>
+					<Menu anchorEl={mobileAnchor()} open={mobileMenuOpen()} onClose={closeMobileMenu}>
+						<MenuItem component="a" href="/storages" onClick={closeMobileMenu}>
+							Облака
+						</MenuItem>
+						<MenuItem component="a" href="/storage_workers" onClick={closeMobileMenu}>
+							Боты
+						</MenuItem>
+						<Show
+							when={isAuthenticated()}
+							fallback={
+								<MenuItem
+									onClick={() => {
+										closeMobileMenu()
+										navigate('/login')
+									}}
+								>
+									Войти
+								</MenuItem>
+							}
+						>
+							{userLabel() ? <MenuItem onClick={closeMobileMenu}>{userLabel()}</MenuItem> : null}
+							<MenuItem
+								onClick={() => {
+									closeMobileMenu()
+									logout()
+								}}
+							>
+								Выйти
+							</MenuItem>
+						</Show>
+					</Menu>
 				</Box>
 			</Toolbar>
 		</AppBar>

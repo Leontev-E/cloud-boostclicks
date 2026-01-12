@@ -24,7 +24,6 @@ import FSListItem from '../../components/FSListItem'
 import Menu from '../../components/Menu'
 import CreateFolderDialog from '../../components/CreateFolderDialog'
 import { alertStore } from '../../components/AlertStack'
-import FilePreviewDialog from '../../components/FilePreviewDialog'
 import { checkAuth } from '../../common/auth_guard'
 import createLocalStore from '../../../libs'
 
@@ -40,7 +39,6 @@ const Files = () => {
 	const [storage, setStorage] = createSignal()
 	const [isCreateFolderDialogOpen, setIsCreateFolderDialogOpen] =
 		createSignal(false)
-	const [previewFile, setPreviewFile] = createSignal()
 	const [isUploading, setIsUploading] = createSignal(false)
 	const [uploadProgress, setUploadProgress] = createSignal(0)
 	const [uploadNote, setUploadNote] = createSignal('')
@@ -231,12 +229,6 @@ const Files = () => {
 		}
 	}
 
-	const openPreview = (file) => {
-		setPreviewFile(file)
-	}
-
-	const closePreview = () => setPreviewFile(undefined)
-
 	const handleDownloadStart = (name) => {
 		setIsDownloading(true)
 		setDownloadName(name)
@@ -276,10 +268,10 @@ const totalPages = () => {
 					<Grid item xs={12} md={7}>
 						<Typography variant="h4">{storage()?.name}</Typography>
 						<Typography variant="body2" color="text.secondary">
-							Клик по файлу — предпросмотр. Клик по папке — переход внутрь.
+							Клик по файлу — инфа. Клик по папке — переход внутрь.
 						</Typography>
 						<Typography variant="body2" color="text.secondary">
-							Подключите до 20 ботов в TG-канал для ускорения облака.
+							Рекомендуем добавить до 20 ботов в TG-канал для ускорения работы.
 						</Typography>
 					</Grid>
 
@@ -357,17 +349,16 @@ const totalPages = () => {
 						}
 					>
 						<Stack spacing={1.25}>
-							{mapArray(paginatedItems, (fsElement) => (
-								<FSListItem
-									fsElement={fsElement}
-									storageId={params.id}
-									onDelete={fetchFSLayer}
-									onPreview={openPreview}
-									onDownloadStart={handleDownloadStart}
-									onDownloadProgress={handleDownloadProgress}
-									onDownloadEnd={handleDownloadEnd}
-								/>
-							))}
+								{mapArray(paginatedItems, (fsElement) => (
+									<FSListItem
+										fsElement={fsElement}
+										storageId={params.id}
+										onDelete={fetchFSLayer}
+										onDownloadStart={handleDownloadStart}
+										onDownloadProgress={handleDownloadProgress}
+										onDownloadEnd={handleDownloadEnd}
+									/>
+								))}
 						</Stack>
 						<Box
 							sx={{
@@ -432,16 +423,9 @@ const totalPages = () => {
 					style="display: none"
 					onChange={uploadFile}
 				/>
-
-				<FilePreviewDialog
-					file={previewFile()}
-					storageId={params.id}
-					isOpened={Boolean(previewFile())}
-					onClose={closePreview}
-				/>
-			</Stack>
-		</>
-	)
-}
+				</Stack>
+			</>
+		)
+	}
 
 export default Files
