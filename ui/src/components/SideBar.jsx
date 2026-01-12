@@ -1,4 +1,6 @@
 ﻿import Drawer from '@suid/material/Drawer'
+import Paper from '@suid/material/Paper'
+import Typography from '@suid/material/Typography'
 import List from '@suid/material/List'
 import Divider from '@suid/material/Divider'
 import IconButton from '@suid/material/IconButton'
@@ -51,22 +53,39 @@ const SideBar = () => {
 					: 'drawer-paper drawer-paper-closed',
 			}}
 		>
-			<List>
-				<ListItem disablePadding sx={{ display: 'block' }}>
-					<ListItemButton
-						sx={{
-							justifyContent: open() ? 'end' : 'center',
-							py: 0.5,
-							px: 1,
-						}}
-						onClick={toggleDrawerOpen}
-					>
-						<IconButton>
-							{open() ? <ChevronLeftIcon /> : <ChevronRightIcon />}
-						</IconButton>
-					</ListItemButton>
-				</ListItem>
-			</List>
+			<Paper
+				elevation={0}
+				sx={{
+					m: 1,
+					px: 1.5,
+					py: 1,
+					borderRadius: 2,
+					border: '1px solid rgba(15,23,42,0.08)',
+					backgroundColor: '#f8fafc',
+					display: 'flex',
+					alignItems: 'center',
+					justifyContent: open() ? 'space-between' : 'center',
+					gap: 1,
+				}}
+			>
+				{open() && (
+					<Typography variant="subtitle2" sx={{ fontWeight: 700 }}>
+						Навигация
+					</Typography>
+				)}
+				<IconButton
+					onClick={toggleDrawerOpen}
+					size="small"
+					sx={{
+						borderRadius: 2,
+						border: '1px solid rgba(15,23,42,0.12)',
+						backgroundColor: '#ffffff',
+						'&:hover': { backgroundColor: '#f1f5f9' },
+					}}
+				>
+					{open() ? <ChevronLeftIcon fontSize="small" /> : <ChevronRightIcon fontSize="small" />}
+				</IconButton>
+			</Paper>
 			<Divider />
 			<List>
 				<SideBarItem text="Облака" link="/storages" isFull={open()}>

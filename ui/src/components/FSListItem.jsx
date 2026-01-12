@@ -5,8 +5,6 @@ import ListItemText from '@suid/material/ListItemText'
 import MenuMUI from '@suid/material/Menu'
 import MenuItem from '@suid/material/MenuItem'
 import IconButton from '@suid/material/IconButton'
-import FileIcon from '@suid/icons-material/InsertDriveFileOutlined'
-import FolderIcon from '@suid/icons-material/Folder'
 import MoreVertIcon from '@suid/icons-material/MoreVert'
 import DownloadIcon from '@suid/icons-material/Download'
 import InfoIcon from '@suid/icons-material/Info'
@@ -17,6 +15,16 @@ import Paper from '@suid/material/Paper'
 import Typography from '@suid/material/Typography'
 import { Show, createSignal } from 'solid-js'
 import { useNavigate, useParams } from '@solidjs/router'
+import {
+	Folder as LucideFolder,
+	Image as LucideImage,
+	FileVideo as LucideFileVideo,
+	Music as LucideMusic,
+	FileText as LucideFileText,
+	FileSpreadsheet as LucideFileSpreadsheet,
+	FileArchive as LucideFileArchive,
+	FileType as LucideFileType,
+} from 'lucide-solid'
 
 import API from '../api'
 import ActionConfirmDialog from './ActionConfirmDialog'
@@ -64,6 +72,35 @@ const FSListItem = (props) => {
 			.split('/')
 			.map((segment) => encodeURIComponent(segment))
 			.join('/')
+
+	const getExtension = (name = '') => {
+		const parts = name.toLowerCase().split('.')
+		return parts.length > 1 ? parts[parts.length - 1] : ''
+	}
+
+	const getFileIcon = (fsElement) => {
+		if (!fsElement.is_file) return <LucideFolder color="#f59e0b" size={22} />
+		const ext = getExtension(fsElement.name)
+		if (['jpg', 'jpeg', 'png', 'gif', 'webp', 'bmp', 'svg'].includes(ext)) {
+			return <LucideImage color="#2563eb" size={22} />
+		}
+		if (['mp4', 'mov', 'webm', 'mkv'].includes(ext)) {
+			return <LucideFileVideo color="#7c3aed" size={22} />
+		}
+		if (['mp3', 'wav', 'ogg', 'aac'].includes(ext)) {
+			return <LucideMusic color="#10b981" size={22} />
+		}
+		if (ext === 'pdf') {
+			return <LucideFileArchive color="#ef4444" size={22} />
+		}
+		if (['xls', 'xlsx'].includes(ext)) {
+			return <LucideFileSpreadsheet color="#0ea5e9" size={22} />
+		}
+		if (['doc', 'docx', 'ppt', 'pptx', 'txt', 'md', 'csv'].includes(ext)) {
+			return <LucideFileText color="#0ea5e9" size={22} />
+		}
+		return <LucideFileType color="#475569" size={22} />
+	}
 
 	const getSharePath = () =>
 		props.fsElement.is_file
@@ -263,11 +300,7 @@ const FSListItem = (props) => {
 							alignItems: 'center',
 						}}
 					>
-						<ListItemIcon sx={{ minWidth: 36 }}>
-							<Show when={props.fsElement.is_file} fallback={<FolderIcon />}>
-								<FileIcon />
-							</Show>
-						</ListItemIcon>
+						<ListItemIcon sx={{ minWidth: 36 }}>{getFileIcon(props.fsElement)}</ListItemIcon>
 						<ListItemText
 							primary={
 								<Typography sx={{ fontWeight: 700 }}>

@@ -27,18 +27,32 @@ const Header = () => {
 	}
 
 	return (
-		<AppBar elevation={0} position="sticky">
-			<Toolbar sx={{ justifyContent: 'space-between' }}>
+		<AppBar
+			elevation={0}
+			position="sticky"
+			sx={{
+				backgroundColor: '#ffffff',
+				borderBottom: '1px solid rgba(15,23,42,0.08)',
+				color: '#0f172a',
+			}}
+		>
+			<Toolbar sx={{ justifyContent: 'space-between', gap: 2 }}>
 				<A href="/">
-					<Box sx={{ display: 'flex', alignItems: 'center' }}>
+					<Box sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
 						<AppIcon />
-						<Typography variant="h5" noWrap sx={{ pl: 1.5 }}>
+						<Typography variant="h5" noWrap sx={{ pl: 0.5, fontWeight: 800 }}>
 							cloud.boostclicks
 						</Typography>
 					</Box>
 				</A>
 
 				<Box sx={{ display: 'flex', alignItems: 'center', gap: 1.5 }}>
+					<Button variant="text" component="a" href="/storages">
+						Облака
+					</Button>
+					<Button variant="text" component="a" href="/storage_workers">
+						Боты
+					</Button>
 					<Show
 						when={isAuthenticated()}
 						fallback={

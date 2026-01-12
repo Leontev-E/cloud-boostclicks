@@ -27,7 +27,10 @@ const SideBarItem = (props) => {
 					sx={{
 						minHeight: 48,
 						justifyContent: props.isFull ? 'initial' : 'center',
-						px: 2.5,
+						px: 2,
+						borderRadius: 2,
+						mt: 0.5,
+						'&:hover': { backgroundColor: '#eef2ff' },
 					}}
 				>
 					<ListItemIcon
@@ -41,7 +44,10 @@ const SideBarItem = (props) => {
 					</ListItemIcon>
 					<ListItemText
 						primary={props.text}
-						sx={{ display: props.isFull ? 'border-box' : 'none' }}
+						sx={{
+							display: props.isFull ? 'border-box' : 'none',
+							'& .MuiListItemText-primary': { fontWeight: 700 },
+						}}
 					/>
 				</ListItemButton>
 			</A>

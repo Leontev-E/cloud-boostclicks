@@ -1,4 +1,4 @@
-﻿import { useBeforeLeave, useNavigate, useParams } from '@solidjs/router'
+﻿import { useBeforeLeave, useParams } from '@solidjs/router'
 import { Show, createSignal, mapArray, onCleanup, onMount } from 'solid-js'
 import MenuItem from '@suid/material/MenuItem'
 import ListItemIcon from '@suid/material/ListItemIcon'
@@ -13,6 +13,11 @@ import Paper from '@suid/material/Paper'
 import LinearProgress from '@suid/material/LinearProgress'
 import Box from '@suid/material/Box'
 import Skeleton from '@suid/material/Skeleton'
+import FormControl from '@suid/material/FormControl'
+import Select from '@suid/material/Select'
+import InputLabel from '@suid/material/InputLabel'
+import MenuItemMUI from '@suid/material/MenuItem'
+import Button from '@suid/material/Button'
 
 import API from '../../api'
 import FSListItem from '../../components/FSListItem'
@@ -43,7 +48,8 @@ const Files = () => {
 	const [downloadProgress, setDownloadProgress] = createSignal(0)
 	const [downloadName, setDownloadName] = createSignal('')
 	const [isLoading, setIsLoading] = createSignal(true)
-	const navigate = useNavigate()
+	const [page, setPage] = createSignal(1)
+	const [pageSize, setPageSize] = createSignal(20)
 	const params = useParams()
 	const basePath = `/storages/${params.id}/files`
 
@@ -82,6 +88,7 @@ const Files = () => {
 			}
 
 			setFsLayer(fsLayerRes)
+			setPage(1)
 		} finally {
 			setIsLoading(false)
 		}
@@ -239,11 +246,28 @@ const Files = () => {
 		if (pct === null) return
 		setDownloadProgress(pct)
 	}
-	const handleDownloadEnd = () => {
-		setIsDownloading(false)
-		setDownloadName('')
-		setDownloadProgress(0)
-	}
+const handleDownloadEnd = () => {
+	setIsDownloading(false)
+	setDownloadName('')
+	setDownloadProgress(0)
+}
+
+const paginatedItems = () => {
+	const items = fsLayer()
+	const hasParent = items[0]?.name === '..'
+	const rest = hasParent ? items.slice(1) : items
+	const pages = Math.max(1, Math.ceil(rest.length / pageSize()))
+	const currentPage = Math.min(page(), pages)
+	const start = (currentPage - 1) * pageSize()
+	const sliced = rest.slice(start, start + pageSize())
+	return hasParent ? [items[0], ...sliced] : sliced
+}
+
+const totalPages = () => {
+	const items = fsLayer()
+	const rest = items[0]?.name === '..' ? items.slice(1) : items
+	return Math.max(1, Math.ceil(rest.length / pageSize()))
+}
 
 	return (
 		<>
@@ -252,10 +276,10 @@ const Files = () => {
 					<Grid item xs={12} md={7}>
 						<Typography variant="h4">{storage()?.name}</Typography>
 						<Typography variant="body2" color="text.secondary">
-							Путь: /{getCurrentPath() || 'корень'}
+							Клик по файлу — предпросмотр. Клик по папке — переход внутрь.
 						</Typography>
 						<Typography variant="body2" color="text.secondary">
-							Клик по файлу — предпросмотр. Клик по папке — переход внутрь.
+							Подключите до 20 ботов в TG-канал для ускорения облака.
 						</Typography>
 					</Grid>
 
@@ -280,14 +304,6 @@ const Files = () => {
 									<UploadFileIcon />
 								</ListItemIcon>
 								<ListItemText>Файлы</ListItemText>
-							</MenuItem>
-							<MenuItem
-								onClick={() => navigate(`/storages/${params.id}/upload_to`)}
-							>
-								<ListItemIcon>
-									<UploadFileIcon />
-								</ListItemIcon>
-								<ListItemText>Файлы по пути</ListItemText>
 							</MenuItem>
 						</Menu>
 					</Grid>
@@ -341,7 +357,7 @@ const Files = () => {
 						}
 					>
 						<Stack spacing={1.25}>
-							{mapArray(fsLayer, (fsElement) => (
+							{mapArray(paginatedItems, (fsElement) => (
 								<FSListItem
 									fsElement={fsElement}
 									storageId={params.id}
@@ -353,6 +369,54 @@ const Files = () => {
 								/>
 							))}
 						</Stack>
+						<Box
+							sx={{
+								display: 'flex',
+								alignItems: 'center',
+								justifyContent: 'space-between',
+								mt: 2,
+								gap: 2,
+								flexWrap: 'wrap',
+							}}
+						>
+							<FormControl size="small" sx={{ minWidth: 140 }}>
+								<InputLabel id="page-size-label">На странице</InputLabel>
+								<Select
+									labelId="page-size-label"
+									value={pageSize()}
+									label="На странице"
+									onChange={(e) => {
+										setPageSize(Number(e.target.value))
+										setPage(1)
+									}}
+								>
+									<MenuItemMUI value={10}>10</MenuItemMUI>
+									<MenuItemMUI value={20}>20</MenuItemMUI>
+									<MenuItemMUI value={50}>50</MenuItemMUI>
+								</Select>
+							</FormControl>
+							<Box sx={{ display: 'flex', alignItems: 'center', gap: 1, ml: 'auto' }}>
+								<Button
+									variant="outlined"
+									size="small"
+									disabled={page() <= 1}
+									onClick={() => setPage((p) => Math.max(1, p - 1))}
+								>
+									Назад
+								</Button>
+								<Typography variant="body2" color="text.secondary">
+									Страница {page()} из {totalPages()}
+								</Typography>
+								<Button
+									variant="outlined"
+									size="small"
+									disabled={page() >= totalPages()}
+									onClick={() => setPage((p) => Math.min(totalPages(), p + 1))}
+								>
+									Вперед
+								</Button>
+							</Box>
+						</Box>
 					</Show>
 				</Grid>
 
