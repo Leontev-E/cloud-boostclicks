@@ -23,7 +23,7 @@ impl<'t> TelegramBotApi<'t> {
     ) -> CloudBoostclicksResult<UploadSchema> {
         let chat_id = Self::normalize_chat_id(chat_id);
 
-        let url = self.build_url("", "sendDocument", token);
+        let url = self.build_url("", "sendDocument", &token);
 
         let file_part =
             multipart::Part::bytes(file.to_vec()).file_name("cloud_boostclicks_chunk.bin");
@@ -50,7 +50,7 @@ impl<'t> TelegramBotApi<'t> {
         token: String,
     ) -> CloudBoostclicksResult<Vec<u8>> {
         // getting file path
-        let url = self.build_url("", "getFile", token);
+        let url = self.build_url("", "getFile", &token);
         // TODO: add retries with their number taking from env
         let body: DownloadBodySchema = reqwest::Client::new()
             .get(url)
@@ -61,7 +61,7 @@ impl<'t> TelegramBotApi<'t> {
             .await?;
 
         // downloading the file itself
-        let url = self.build_url("file/", &body.result.file_path, token);
+        let url = self.build_url("file/", &body.result.file_path, &token);
         let file = reqwest::get(url)
             .await?
             .bytes()
@@ -73,7 +73,7 @@ impl<'t> TelegramBotApi<'t> {
 
     /// Taking token by a value to force dropping it so it can be used only once
     #[inline]
-    fn build_url(&self, pre: &str, relative: &str, token: String) -> String {
+    fn build_url(&self, pre: &str, relative: &str, token: &str) -> String {
         format!("{}/{pre}bot{token}/{relative}", self.base_url)
     }
 
