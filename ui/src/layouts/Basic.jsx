@@ -32,9 +32,9 @@ const BasicLayout = () => {
 					>
 						<Outlet />
 					</Container>
-					<Footer />
 				</Box>
 			</Box>
+			<Footer />
 			<MobileNav />
 			<InstallPromptBanner />
 		</Box>
