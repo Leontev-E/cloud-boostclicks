@@ -11,12 +11,7 @@ import Stack from '@suid/material/Stack'
 import Alert from '@suid/material/Alert'
 import Chip from '@suid/material/Chip'
 import CheckCircleIcon from '@suid/icons-material/CheckCircleOutline'
-import SecurityIcon from '@suid/icons-material/Security'
-import LinkIcon from '@suid/icons-material/Link'
-import MobileFriendlyIcon from '@suid/icons-material/MobileFriendly'
 import VisibilityIcon from '@suid/icons-material/Visibility'
-import StorageIcon from '@suid/icons-material/Storage'
-import CloudDoneIcon from '@suid/icons-material/CloudDone'
 import CompareIcon from '@suid/icons-material/CompareArrows'
 import ExpandMoreIcon from '@suid/icons-material/ExpandMore'
 import Fab from '@suid/material/Fab'
@@ -27,6 +22,7 @@ import VisibilityOff from '@suid/icons-material/VisibilityOff'
 import Skeleton from '@suid/material/Skeleton'
 import Link from '@suid/material/Link'
 import { useNavigate } from '@solidjs/router'
+import { Cloud, Layers, Link2, Shield, MonitorSmartphone } from 'lucide-solid'
 
 import createLocalStore from '../../libs'
 import API from '../api'
@@ -69,27 +65,27 @@ const Login = (props) => {
 		{
 			title: 'Файлы в Telegram',
 			text: 'Хранение и доставка через Telegram-каналы/чаты.',
-			icon: <CloudDoneIcon color="primary" />,
+			icon: <Cloud color={palette().accent} size={22} strokeWidth={2.2} />,
 		},
 		{
 			title: 'Мультиоблака',
 			text: 'Подключайте несколько ботов и каналов под задачи.',
-			icon: <StorageIcon color="primary" />,
+			icon: <Layers color={palette().accent} size={22} strokeWidth={2.2} />,
 		},
 		{
 			title: 'Шаринг по ссылке',
 			text: 'Включайте или выключайте доступ одной кнопкой.',
-			icon: <LinkIcon color="secondary" />,
+			icon: <Link2 color="#6366f1" size={22} strokeWidth={2.2} />,
 		},
 		{
 			title: 'Приватность',
 			text: 'Все файлы хранятся у вас в ТГ.',
-			icon: <SecurityIcon color="secondary" />,
+			icon: <Shield color="#22c55e" size={22} strokeWidth={2.2} />,
 		},
 		{
 			title: 'PWA как приложение',
 			text: 'Устанавливается на телефон, работает офлайн-кешем UI.',
-			icon: <MobileFriendlyIcon color="secondary" />,
+			icon: <MonitorSmartphone color="#f97316" size={22} strokeWidth={2.2} />,
 		},
 	]
 
@@ -371,8 +367,7 @@ const Login = (props) => {
 				maxWidth="lg"
 				sx={{ py: { xs: 2.5, md: 3 }, display: 'flex', alignItems: 'center', gap: 2 }}
 			>
-				<Box sx={{ flex: 1 }} />
-				<Stack direction="row" spacing={1} sx={{ alignItems: 'center' }}>
+				<Stack direction="row" spacing={1} sx={{ alignItems: 'center', justifyContent: 'flex-end', width: '100%' }}>
 					{navLinks.map((link) =>
 						link.external ? (
 							<Button
@@ -405,7 +400,10 @@ const Login = (props) => {
 				<Grid container spacing={{ xs: 3, md: 4 }} alignItems="center">
 					<Grid item xs={12} md={7}>
 						<Stack spacing={2}>
-							<Typography variant="h6" sx={{ fontWeight: 800, color: '#f97316' }}>
+							<Typography
+								variant="h1"
+								sx={{ fontWeight: 800, color: '#f97316', fontSize: { xs: 32, md: '4.25rem' }, lineHeight: 1.05 }}
+							>
 								cloud.boostclicks
 							</Typography>
 							<Typography variant="h1" sx={{ fontSize: { xs: 30, md: 40 }, fontWeight: 800 }}>
@@ -451,23 +449,35 @@ const Login = (props) => {
 								</Typography>
 
 								<Box
-									ref={(el) => {
-										telegramRoot = el
-										mountTelegramWidget()
-									}}
 									sx={{
 										border: `1px dashed ${palette().border}`,
 										borderRadius: 2,
-										p: 2,
-										minHeight: 80,
+										p: 2.5,
+										minHeight: 120,
 										display: 'flex',
+										flexDirection: 'column',
 										alignItems: 'center',
 										justifyContent: 'center',
 										bgcolor: '#f8fafc',
 									}}
 								>
-									<Stack spacing={1} alignItems="center" sx={{ width: '100%' }}>
-										<Show when={!isTelegramReady()}>
+									<Box
+										ref={(el) => {
+											telegramRoot = el
+											mountTelegramWidget()
+										}}
+										sx={{
+											display: 'flex',
+											justifyContent: 'center',
+											alignItems: 'center',
+											width: '100%',
+											'& > *': {
+												margin: '0 auto',
+											},
+										}}
+									/>
+									<Show when={!isTelegramReady()}>
+										<Stack spacing={1} alignItems="center" sx={{ width: '100%' }}>
 											<Skeleton variant="rectangular" width="100%" height={48} />
 											<Button
 												variant="contained"
@@ -477,11 +487,11 @@ const Login = (props) => {
 											>
 												Войти через Telegram
 											</Button>
-											<Typography variant="caption" sx={{ color: palette().secondary }}>
+											<Typography variant="caption" sx={{ color: palette().secondary, textAlign: 'center' }}>
 												Загружаем Telegram-виджет...
 											</Typography>
-										</Show>
-									</Stack>
+										</Stack>
+									</Show>
 								</Box>
 								{telegramError() ? <Alert severity="warning">{telegramError()}</Alert> : null}
 
@@ -546,48 +556,6 @@ const Login = (props) => {
 					</Grid>
 				</Grid>
 			</Container>
-
-			<Box sx={{ backgroundColor: '#ffffff', pb: { xs: 3, md: 4 } }}>
-				<Container maxWidth="lg">
-					<Paper
-						component="a"
-						href="https://t.me/boostclicks"
-						target="_blank"
-						rel="noopener"
-						elevation={0}
-						sx={{
-							display: 'flex',
-							flexDirection: { xs: 'column', md: 'row' },
-							alignItems: 'center',
-							gap: 2,
-							border: `1px solid ${palette().border}`,
-							boxShadow: '0 12px 30px rgba(15,23,42,0.08)',
-							overflow: 'hidden',
-							textDecoration: 'none',
-							borderRadius: 3,
-						}}
-					>
-						<Box
-							component="img"
-							src="https://down-web.ru/img/banner.gif"
-							alt="Партнерский баннер"
-							sx={{
-								width: { xs: '100%', md: 320 },
-								height: { xs: 140, md: 160 },
-								objectFit: 'cover',
-							}}
-						/>
-						<Stack spacing={0.5} sx={{ p: { xs: 2, md: 0 } }}>
-							<Typography variant="overline" color="primary">
-								Партнеры cloud.boostclicks
-							</Typography>
-							<Typography variant="h6" sx={{ fontWeight: 700 }}>
-								BoostClicks в Telegram
-							</Typography>
-						</Stack>
-					</Paper>
-				</Container>
-			</Box>
 
 			<Box id="features" sx={{ backgroundColor: '#ffffff', py: { xs: 4, md: 6 } }}>
 				<Container maxWidth="lg">
