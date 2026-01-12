@@ -1,255 +1,141 @@
-﻿# cloud.boostclicks
+# cloud.boostclicks
 
-Современное облачное хранилище поверх Telegram. Файлы хранятся в Telegram-каналах, сервер держит только метаданные и управляет доступом.
-
-## Ключевые возможности
-
-- Вход через Telegram (основной способ).
-- Мультиоблака: несколько облаков, несколько ботов, несколько пользователей.
-- Роли доступа: Просмотр, Редактирование, Админ.
-- Большие файлы: нарезка на чанки и сборка при скачивании.
-- PWA + Capacitor для упаковки в Android/iOS.
-
-## Как это работает
-
-1. Пользователь входит через Telegram.
-2. Добавляет токен бота (или нескольких ботов) для работы с Telegram API.
-3. Создает облако, указывая ID Telegram-канала.
-4. Приложение сохраняет метаданные в Postgres и управляет доступами.
-5. Файлы разбиваются на части, загружаются в Telegram и собираются при скачивании.
-
-## Стек
-
-- Backend: Rust, Axum, SQLx, JWT.
-- БД: PostgreSQL.
-- Frontend: SolidJS + SUID (Material UI) + Vite.
-- Mobile: PWA + Capacitor (Android/iOS).
-- Инфраструктура: Docker, Docker Compose, Nginx/Traefik.
-
-## Быстрый старт (Docker)
-
-1. Скопируйте `.env.example` в `.env` и заполните:
-
-- `TELEGRAM_LOGIN_BOT_TOKEN`
-- `VITE_TELEGRAM_LOGIN_BOT_USERNAME=cloudBoostclicks_bot`
-- `SECRET_KEY`
-
-2. Запуск:
-
-```sh
-docker compose up -d --build
-```
-
-3. Откройте:
-
-- API: `http://localhost:8000`
-- Web: `http://localhost:8000` (UI обслуживается сервером API)
-
-## Переменные окружения (минимум)
-
-Backend (`.env`):
-
-- `PORT`, `WORKERS`, `CHANNEL_CAPACITY`
-- `SECRET_KEY`
-- `TELEGRAM_API_BASE_URL`
-- `TELEGRAM_LOGIN_BOT_TOKEN`
-- `TELEGRAM_LOGIN_MAX_AGE_SECS`
-- `DATABASE_USER`, `DATABASE_PASSWORD`, `DATABASE_NAME`, `DATABASE_HOST`, `DATABASE_PORT`
-
-Frontend (`ui/.env` или build args):
-
-- `VITE_API_BASE` (по умолчанию `http://localhost:8000/api`)
-- `VITE_TELEGRAM_LOGIN_BOT_USERNAME`
-
-## Локальная разработка
-
-Backend:
-
-```sh
-cd backend
-cargo run
-```
-
-Frontend:
-
-```sh
-cd ui
-pnpm i
-pnpm run dev
-```
-
-## Android/iOS (Capacitor)
-
-1. Установите зависимости:
-
-```sh
-cd ui
-pnpm i
-```
-
-2. Сборка и синхронизация:
-
-```sh
-pnpm run build
-pnpm cap:sync
-```
-
-3. Добавьте платформы:
-
-```sh
-pnpm cap:add:android
-pnpm cap:add:ios
-```
-
-4. Открыть нативные проекты:
-
-```sh
-pnpm cap:open:android
-pnpm cap:open:ios
-```
-
-## Деплой
-
-- Рекомендуется reverse-proxy (Nginx/Traefik) и TLS.
-- Домен: `cloud.boostclicks.ru`.
-- Не храните `TELEGRAM_LOGIN_BOT_TOKEN` в репозитории.
-
-## UI checklist (коротко)
-
-- Брейкпоинты: xs ≤ 600px, sm 600–900, md 900–1200, lg 1200–1536, xl > 1536. Контент до 1100–1200px на desktop, padding 16px на mobile.
-- Таблицы/списки на mobile → карточки (Paper, border-radius 16–18, gap 12–16). Ключевые действия в одну-две кнопки с touch-target ≥ 44px.
-- Навигация: Desktop — sidebar + header. Mobile — bottom navigation (главные разделы), без горизонтального скролла всего экрана.
-- Отступы: секции 16–24px на mobile, 24–32px на desktop. Формы разбиваем на блоки, подписи/ошибки рядом.
-- Загрузки: skeleton для списков, прогресс-бар для загрузки/скачивания, понятные пустые состояния.
-
-## Контакты разработчика
-
-BoostClicks — Евгений Леонтьев
-
-- Telegram: https://t.me/boostclicks
-- Сайт: https://boostclicks.ru
+[Русская версия](#русский) · [English version](#english) · [Открыть продукт](https://cloud.boostclicks.ru/login)
 
 ---
 
-# cloud.boostclicks (EN)
+## Русский
 
-A modern cloud storage built on top of Telegram. File payloads live in Telegram channels, while the server stores metadata and handles access control.
+**cloud.boostclicks** — облачное хранилище поверх Telegram. Файлы живут в ваших Telegram‑каналах, сервер хранит только метаданные и управляет ссылками на доступ/скачивание.
 
-## Key Features
+### Что умеет
+- Вход через Telegram (основной способ).
+- Несколько ботов на одно облако для ускорения загрузки/выдачи.
+- Файлы и папки с шарингом по ссылке (включить/выключить в один клик).
+- Крупные файлы: нарезка на чанки (20 МБ) и сборка при скачивании.
+- PWA: установка на главный экран + сборка в вебвью (Capacitor) для Android/iOS.
+- Индикация загрузки/скачивания, пагинация, список облаков/ботов.
+- Контакты в футере, открытие через домен `cloud.boostclicks.ru` с HTTPS.
 
-- Telegram login (primary).
-- Multi-cloud, multi-bot, multi-user.
-- Access roles: Viewer, Editor, Admin.
-- Large files via chunking and reassembly.
-- PWA + Capacitor packaging for Android/iOS.
+### Как это работает
+1) Войти через Telegram.  
+2) Добавить токен бота(ов), привязанных к вашему каналу.  
+3) Создать облако, указав ID канала, и добавить бота админом в канал.  
+4) Загружать файлы (обычные и большие) — они уходят в Telegram, метаданные остаются на сервере.  
+5) Делиться ссылкой на файл/папку или скачивать прямо из интерфейса.
 
-## How It Works
-
-1. User signs in with Telegram.
-2. Adds one or more bot tokens to access Telegram API.
-3. Creates a cloud by providing a Telegram channel ID.
-4. Metadata is stored in Postgres and access is managed by the API.
-5. Files are chunked, uploaded to Telegram, and reassembled on download.
-
-## Tech Stack
-
+### Стек
 - Backend: Rust, Axum, SQLx, JWT.
 - DB: PostgreSQL.
 - Frontend: SolidJS + SUID (Material UI) + Vite.
 - Mobile: PWA + Capacitor (Android/iOS).
-- Infra: Docker, Docker Compose, Nginx/Traefik.
+- Infra: Docker / Docker Compose, Nginx (TLS/прокси), Telegram Bot API.
 
-## Quick Start (Docker)
+### Развертывание на своём сервере
+Требования: Docker + Docker Compose, публичный домен и TLS (Nginx/Traefik).
 
-1. Copy `.env.example` to `.env` and set:
+1. Клонировать репозиторий и перейти в корень:
+   ```sh
+   git clone https://github.com/Leontev-E/cloud-boostclicks.git
+   cd cloud-boostclicks
+   ```
+2. Создать `.env` (пример ниже) и указать:
+   - `TELEGRAM_LOGIN_BOT_TOKEN`
+   - `VITE_TELEGRAM_LOGIN_BOT_USERNAME` (например, `cloudBoostclicks_bot`)
+   - `SECRET_KEY`
+   - Параметры БД (`DATABASE_*`)
+3. Запустить:
+   ```sh
+   docker compose up -d --build
+   ```
+4. Настроить reverse-proxy и HTTPS на домен (`cloud.boostclicks.ru` или свой).
 
-- `TELEGRAM_LOGIN_BOT_TOKEN`
-- `VITE_TELEGRAM_LOGIN_BOT_USERNAME=cloudBoostclicks_bot`
-- `SECRET_KEY`
-
-2. Start:
-
-```sh
-docker compose up -d --build
+Минимальный `.env`:
+```
+PORT=8000
+WORKERS=4
+CHANNEL_CAPACITY=32
+SECRET_KEY=change-me
+TELEGRAM_API_BASE_URL=https://api.telegram.org
+TELEGRAM_LOGIN_BOT_TOKEN=xxx:yyy
+TELEGRAM_LOGIN_MAX_AGE_SECS=86400
+VITE_TELEGRAM_LOGIN_BOT_USERNAME=cloudBoostclicks_bot
+DATABASE_USER=cloud_boostclicks
+DATABASE_PASSWORD=cloud_boostclicks
+DATABASE_NAME=cloud_boostclicks
+DATABASE_HOST=db
+DATABASE_PORT=5432
 ```
 
-3. Open:
+### Локальная разработка
+- Backend:
+  ```sh
+  cd backend
+  cargo run
+  ```
+- Frontend:
+  ```sh
+  cd ui
+  pnpm i
+  pnpm run dev
+  ```
 
-- API: `http://localhost:8000`
-- Web UI: `http://localhost:8000` (served by the API)
+### Контакты разработчика
+BoostClicks — Евгений Леонтьев  
+Telegram: https://t.me/boostclicks  
+Сайт: https://boostclicks.ru
 
-## Environment (minimal)
+---
 
-Backend (`.env`):
+## English
 
-- `PORT`, `WORKERS`, `CHANNEL_CAPACITY`
-- `SECRET_KEY`
-- `TELEGRAM_API_BASE_URL`
-- `TELEGRAM_LOGIN_BOT_TOKEN`
-- `TELEGRAM_LOGIN_MAX_AGE_SECS`
-- `DATABASE_USER`, `DATABASE_PASSWORD`, `DATABASE_NAME`, `DATABASE_HOST`, `DATABASE_PORT`
+**cloud.boostclicks** is a Telegram-backed cloud. File payloads stay in your Telegram channels; the server stores metadata and controls link sharing/downloads.
 
-Frontend (`ui/.env` or build args):
+### Features
+- Telegram login (primary).
+- Multiple bots per cloud to speed up uploads/downloads.
+- File & folder sharing via link (toggle on/off).
+- Large files: 20 MB chunks, reassembled on download.
+- PWA ready; packaged to Android/iOS via Capacitor.
+- Progress indicators, pagination, cloud/bot lists.
+- HTTPS domain `cloud.boostclicks.ru` with contact info in the footer.
 
-- `VITE_API_BASE` (defaults to `http://localhost:8000/api`)
-- `VITE_TELEGRAM_LOGIN_BOT_USERNAME`
+### How it works
+1) Sign in with Telegram.  
+2) Add bot token(s) linked to your channel.  
+3) Create a cloud, set the channel ID, add the bot as channel admin.  
+4) Upload files (small or large) — stored in Telegram; metadata stays on the server.  
+5) Share links to files/folders or download directly from the UI.
 
-## Local Development
+### Stack
+- Backend: Rust, Axum, SQLx, JWT.
+- DB: PostgreSQL.
+- Frontend: SolidJS + SUID (Material UI) + Vite.
+- Mobile: PWA + Capacitor (Android/iOS).
+- Infra: Docker / Docker Compose, Nginx (TLS/proxy), Telegram Bot API.
 
-Backend:
+### Self-hosting
+Prereqs: Docker + Docker Compose, public domain + TLS.
+1. Clone:
+   ```sh
+   git clone https://github.com/Leontev-E/cloud-boostclicks.git
+   cd cloud-boostclicks
+   ```
+2. Create `.env` (see sample above) with:
+   - `TELEGRAM_LOGIN_BOT_TOKEN`
+   - `VITE_TELEGRAM_LOGIN_BOT_USERNAME` (e.g. `cloudBoostclicks_bot`)
+   - `SECRET_KEY`, DB params.
+3. Run:
+   ```sh
+   docker compose up -d --build
+   ```
+4. Put Nginx/Traefik in front with HTTPS and point your domain.
 
-```sh
-cd backend
-cargo run
-```
+### Dev
+- Backend: `cd backend && cargo run`
+- Frontend: `cd ui && pnpm i && pnpm run dev`
 
-Frontend:
-
-```sh
-cd ui
-pnpm i
-pnpm run dev
-```
-
-## Android/iOS (Capacitor)
-
-1. Install dependencies:
-
-```sh
-cd ui
-pnpm i
-```
-
-2. Build and sync:
-
-```sh
-pnpm run build
-pnpm cap:sync
-```
-
-3. Add platforms (once):
-
-```sh
-pnpm cap:add:android
-pnpm cap:add:ios
-```
-
-4. Open native projects:
-
-```sh
-pnpm cap:open:android
-pnpm cap:open:ios
-```
-
-## Deploy
-
-- Use a reverse proxy (Nginx/Traefik) + TLS.
-- Domain: `cloud.boostclicks.ru`.
-- Never commit `TELEGRAM_LOGIN_BOT_TOKEN` to git.
-
-## Developer Contacts
-
-BoostClicks — Evgeniy Leontiev
-
-- Telegram: https://t.me/boostclicks
-- Website: https://boostclicks.ru
+### Contacts
+BoostClicks — Evgeniy Leontiev  
+Telegram: https://t.me/boostclicks  
+Website: https://boostclicks.ru
